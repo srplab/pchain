@@ -36,11 +36,10 @@ pydata.Register(NumberClass)
 * using NumberClass.GetType() to get the correspoding cle type object 
 * using GetType() to get the correspoding cle type object of instance
 
-**[Another method : Using DefineType/DefineTypeEx/DefineSubType](#)**
+**[Another method : Using DefineType/DefineSubType](#)**
 
 > * DefineType : DefineType(tpname,rawtype=None), rawtype is a python type or class
 > * DefineSubType : DefineSubType(parenttype,tpname,rawtype = None), rawtype is a python type or class
-> * DefineTypeEx : DefineType(datatype,tpname,rawtype=None), rawtype is a python type or class. datatype is the data base type which has properties 
 
 ```python
 pydata.DefineType('DiskPathClass',None)
@@ -55,15 +54,6 @@ pydata.DefineType('RawMyClass',myclass)
 pydata.DefineSubType(RawMyClass,'RawMySubClass',mysubclass)
 
 inst = RawMySubClass(mysubclass())
-```
-
-```python
-newtype = Service.PCDataBase.CreateType('DataHasProperty')
-newtype.CreateProperty('Attr1',libstarpy.TYPE_CHARPTR,'')
-pydata.DefineTypeEx(newtype,'NumberClass')
-
-re = NumberClass(val)
-re.Wrap().Attr1 = 'From input'
 ```
 
 The data management type defined by this method, using the following template

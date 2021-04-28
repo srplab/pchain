@@ -36,69 +36,6 @@ def Execute(self,num1,num2) :
   Context['Cell'].Finish()
   return (0,1,None)
 
-#save & load rule
-rule = Service.PCRuleBase._New()
-rulebuf = rule.GetRuleBuf()
-
-data = NumberClass(5567.76)
-
-rulebuf[0] = 'wwwee'
-rulebuf[1] = 56.678
-rulebuf[2] = data
-rulebuf[3] = NumberClass
-rulebuf[4] = InputProc
-rulebuf[5] = OutputProc
-
-pkg = Service._ServiceGroup._NewParaPkg()
-rule.SaveTo(pkg)
-
-print('save rule ....')
-print(pkg._ToJSon())
-
-newrule = Service.PCRuleBase.LoadFrom(pkg)
-newrulebuf = newrule.GetRuleBuf()
-
-print('load rule ....')
-print(newrulebuf[0])
-print(newrulebuf[1])
-print(newrulebuf[2])
-print(newrulebuf[3])
-print(newrulebuf[4])
-print(newrulebuf[5])
-
-print('data tag =  ',data.GetTag())
-print('load data tag =  ',newrulebuf[2].GetTag())
-print('data == load data  : ',data.Equals(newrulebuf[2]))
-print('data issame load data  : ',data.IsSame(newrulebuf[2]))
-
-print('')
-print('')
-print('')
-print('')
-
-
-data.SetSignature('000000000000000000000000000000000')
-print('save rule with data signature ....')
-rule.SaveTo(pkg)
-print(pkg._ToJSon())
-
-newrule = Service.PCRuleBase.LoadFrom(pkg)
-newrulebuf = newrule.GetRuleBuf()
-
-print('load rule with data signature....')
-print(newrulebuf[0])
-print(newrulebuf[1])
-print(newrulebuf[2])
-print(newrulebuf[3])
-print(newrulebuf[4])
-print(newrulebuf[5])
-
-print('data signature    ',newrulebuf[2].GetSignature())
-print('data tag =  ',data.GetTag())
-print('load data tag =  ',newrulebuf[2].GetTag())
-print('data == load data  : ',data.Equals(newrulebuf[2]))
-print('data issame load data  : ',data.IsSame(newrulebuf[2]))
-
 
 #save & load data
 class Person :
@@ -123,6 +60,7 @@ print('')
 print('')
 print('')
 
+pkg = Service._ServiceGroup._NewParaPkg()
 data.SaveTo(pkg)
 print('save data ....')
 print(pkg._ToJSon())

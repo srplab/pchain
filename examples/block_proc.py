@@ -1,4 +1,4 @@
-# python 2.7
+# python 3
 
 import sys
 import os
@@ -36,10 +36,16 @@ def Execute(self,url) :
 
   try:    
     libstarpy._SRPUnLock()  # release cle lock, before enter wait
-    import urllib2
-    req = urllib2.Request(url.value())
-    fd = urllib2.urlopen(req)
-    result = fd.read()
+    result = None
+    if pchain.ispython2 == True :
+      import urllib2
+      req = urllib2.Request(url.value())
+      fd = urllib2.urlopen(req)
+      result = fd.read()
+    else :
+      import urllib.request
+      fd = urllib.request.urlopen(url.value())
+      result = fd.read()
     libstarpy._SRPLock()    # capture cle lock,
     return (0,1,WebPageClass(result))         
   except Exception as exc:
@@ -49,6 +55,9 @@ def Execute(self,url) :
 print(DownLoadUrlProc.GetType().IsAsync)
 try :
   Result = DownLoadUrlProc.call(UrlClass('http://www.srplab.com'))
+  print(Result.GetType())
+  print(Result._ID)
+  print(Result.IsInstance(WebPageClass))
   print(Result)
   
 except Exception as exc:

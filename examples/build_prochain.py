@@ -30,11 +30,12 @@ class NumberClass(PCPyDataClass) :
   def Load(MetaData) :
     #print('load................',MetaData)
     #raise Exception('Load function is not defined ')
+    print('dddddddddddddddddddddddddddddddd')
     aa = NumberClass(float(MetaData))
     return aa
   def Save(self) :
     #raise Exception('Save function is not defined for '+str(self))    
-    return str(self.num)
+    return str(self.val)
 pydata.Register(NumberClass)  
 
 class StringClass(PCPyDataClass) :

@@ -112,7 +112,7 @@ pyproc.DefineRawProc(tpname,InputDataType,OutputDataType,PyFunc)
 
 > tpname : string, is proc type name
 > StarNameSpace : cle object
-> InputDataType : Tuple of input data types
+> InputDataType : Tuple of input data types, please refer to 'InputFrom'
 > OutputDataType : output data type. For DefineRawProc, only one type is supported, and the type must be defined with pydata.DefineType. For DefineProc, the OutputDatatype maybe a tuple
 > PyFunc : python function to be called
 
@@ -233,8 +233,6 @@ print(Result)
 
 **[Asynchronous execution using separate threads, before entering the time-consuming operation, you need to call _SRPUnLock to unlock, and then call _SRPLock after exiting.](#)**
 
-
-
 Functions supported by process management objects
 ---
 
@@ -247,20 +245,29 @@ This function should be called in the Execute function of the process
 
 `procbuf = xxx.GetLocalBuf()`
 
-
-*[GetRootLocalBuf](#)*
-
-When the process in the cell is executed, an instance of the executed process is generated and placed in the Runner. For the same process, multiple instances and multiple Runners may be generated. GetLocalBuf gets the buffer of the instance. GetRootLocalBuf gets the buffer of the process that generated the instance. This buffer is shared by multiple process instances and is valid before the Cell schedule is completed.
-
-The buffer is valid in the cell. When the cell is released, the buffer is released too.
-
-`rootprocbuf = xxx.GetRootLocalBuf()`
-
 *[GetSignature](#)*
 
 Reserved, used to verify identity of the process in the future
 
 `VS_CHAR *GetSignature()`
+
+*[Notify](#)*
+
+Create OnNewProc callback of realm stub object to notify outside. **If the type is defined not using DefineProc/DefineRawProc/DefineRawProc/DefineAsyncRawProc, this function should be called.**
+
+The new object may be new proc instance or proc type, which can be judged by Realm's function IsProc or IsProcType
+
+`VS_BOOL Notify()`
+
+*[IsType](#)*
+
+`VS_BOOL IsType()`
+
+*[IsRootType](#)*
+
+The object is PCProcBase, PCProcRemoteBase, or PCCellBase
+
+`VS_BOOL IsRootType()`
 
 *[GetType](#)*
 
@@ -341,15 +348,9 @@ Get a list of process object with IsType true. Usually a direct instance of PCPr
 
 `VS_PARAPKGPTR CollectType()`
 
-*[CreateSubType](#)*
-
-Create a subprocess type
-
-`void *CreateSubType(VS_CHAR *NewTypeName,void *StarNameSpace)`
-
 *[Wrap](#)*
 
-This function returns itself, for compatibility with the pyproc calling method.
+This function returns the corresponding cleobject, for compatibility with the pyproc method.
 
 `void *Wrap()`
 
@@ -407,11 +408,17 @@ Returns a list of input data types.
 
 `VS_PARAPKGPTR CollectInputDataClass()`
 
-*[GetInpuNumber](#)*
+*[GetInputNumber](#)*
 
 Get the number of inputs
 
 `VS_INT32 GetInputNumber()`
+
+*[GetRequestNumber](#)*
+
+Get the number data instance required of inputs
+
+`VS_INT32 GetRequestNumber(VS_INT32 Index)`
 
 *[IsFromInternal](#)*
 
@@ -463,6 +470,12 @@ Whether the input data already exists. Valid when the process is in Runner
 
 `VS_BOOL IsEnough(VS_INT32 Index)`
 
+*[GetInputTypeEx](#)*
+
+Get list of data type object corresponding to each input, the item number equals to number of input
+
+`VS_PARAPKGPTR GetInputTypeEx()`
+
 *[OutputFrom](#)*
 
 Output data object type definition.
@@ -475,23 +488,29 @@ Parameters can be "m" or, and data type objects.
 
 **["m" can only be used when the proc is a PCCell](#)**
 
-*[GetOutputType](#)*
+**If the proc is not cell, then for each output data type, pchain automatically defines new data types, whose name is the original {type name}_P{number}**
+
+*[GetOutputNumber](#)*
+
+Return the number of output data type
+
+`VS_INT32 GetOutputNumber()`
+
+*[GetOutputType/GetOriginOutputType](#)*
 
 Return the output data type object list
 
 `VS_PARAPKGPTR GetOutputType()`
 
-*[OutputQueueToParaPkg](#)*
+`VS_PARAPKGPTR GetOriginOutputType()`
+
+*[OutputQueueToParaPkg/OriginOutputQueueToParaPkg](#)*
 
 The returned result is consistent with the format of the OutputFrom's input.
 
 `VS_PARAPKGPTR OutputQueueToParaPkg()`
 
-*[RedirectOutput](#)*
-
-The output data type of the redirect process. When AddOutputData is called to add an instance of DataClass, it is converted by pchain to an instance of NewDataClass.
-
-`VS_BOOL RedirectOutput(void *DataClass, void *NewDataClass)`
+`VS_PARAPKGPTR OriginOutputQueueToParaPkg()`
 
 #### c. Input and output data object management
 
@@ -519,6 +538,14 @@ The data object is rejected as input. The data object is assigned to the instanc
 
 If the input parameter DataObject is NULL, reject all data objects currently assigned to the process
 
+*[RecordReject](#)*
+
+If Flag is true(default is false), the reject data will be recorded, and can be get using realm's GetReject function.
+
+The return value is RecordRejectID.
+
+`VS_CHAR *RecordReject(VS_BOOL Flag)`
+
 *[AcceptInput](#)*
 
 The data object is accepted as input. The data object is assigned to the instance of the process by pchain. After calling this function, the process instance can allocate new data objects again
@@ -539,7 +566,7 @@ Returns the data objects assigned to each output of the process instance, or mul
 
 Add an output data object, you can add more than one at a time. Pchain sets all input data objects to the source object of the output object
 
-Different from AddOutputDataEx, if there is already equal output data, it will not be added repeatedly. 
+If there is already equal output data, it will be added again. 
 
 `VS_BOOL AddOutputData(void *DataObject1,void *DataOject2,...)`
 
@@ -547,7 +574,7 @@ Different from AddOutputDataEx, if there is already equal output data, it will n
 
 *[AddOutputDataEx](#)*
 
-Add an output data object, you can only add one, and when added, indicate the source data object. 
+Add an output data object and set it's source.
 
 `VS_BOOL AddOutputDataEx(void *DataObject, void *SourceData,...)`
 
@@ -567,13 +594,13 @@ Update the output object, which must have been added to the output object of the
 
 Whether the data object can be used as the input data object. 
 
-`VS_BOOL DataCanBeAsInput(struct StructOfPCDataBase *PCData, VS_BOOL IncludeCellProcChain)`
+`VS_BOOL DataCanBeAsInput(struct StructOfPCDataBase *PCData)`
 
 *[DataCanBeAsOutput](#)*
 
 Whether the data object is output of the process. 
 
-`VS_BOOL DataCanBeAsOutput(struct StructOfPCDataBase *PCData, VS_BOOL IncludeCellProcChain)`
+`VS_BOOL DataCanBeAsOutput(struct StructOfPCDataBase *PCData)`
 
 *[ProcCanBeAsInput](#)*
 
@@ -698,26 +725,62 @@ If the result is one, return directly; if there are multiple, return the parapkg
 
 **[note: If the process is executed unsuccessfuly, an exception will be generated. Need to use try capture]**
 
-#### g. local buf of python proc instance
+Functions supported for python instances corresponding to cle objects 
+---
 
-default value is None
+* GetLocalBuf
+* GetSignature
+* GetTag
+* GetTagLabel
+* RejectInput
+* AcceptInput
+* RecordReject
+* InputQueueToParaPkg
+* GetInputNumber
+* GetRequestNumber
+* IsFromInternal
+* IsSlave
+* IsMustExist
+* GetMasterInput
+* GetMasterInputType
+* GetInputType
+* SetInputType
+* IsEnough
+* GetInputTypeEx
+* DataCanBeAsInput
+* DataCanBeAsOutput
+* ProcCanBeAsInput
+* OutputQueueToParaPkg
+* OriginOutputQueueToParaPkg
+* GetOutputNumber
+* GetOutputType
+* GetOriginOutputType
+* ClearOutputData
+* AddOutputData
+* AddOutputDataEx
+* GetCell
+* Suspend
+* Resume
+* Continue
+* GetRootProc
+* GetPrevProc
+* GetNextProc
+* IsPrevProcFinish
+* IsCurrent
+* IsType
+* GetType
+* GetTypeName
+* Equals
+* IsInstance
+* RegCallBack
+* UnRegCallBack
 
-```python
-proc = InputProc()
-proc.LocalBuf = []
-```
+Properties supported for python instances corresponding to cle objects 
+---
 
-for cle object which wrap the python proc instance
-
-```python
-cleobj = InputProc().Wrap()
-proc = pyproc.UnWrap(cleobj)
-proc.LocalBuf = []
-```
-
-
-
-
+* _ID
+* Tag
+* TagLabel
 
 
 

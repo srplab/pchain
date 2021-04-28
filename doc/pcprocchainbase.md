@@ -29,6 +29,10 @@ Functions supported by PCProcChain management objects
 
 #### a. basic function
 
+*[IsType](#)*
+
+`VS_BOOL IsType()`
+
 *[GetType](#)*
 
 Get the type object of the process chain.
@@ -62,6 +66,12 @@ return 'chain_PCProcChainBase'
 the data object is instance of input Type
 
 `VS_BOOL IsInstance(void *Type)`
+
+*[Wrap](#)*
+
+This function returns itself, for compatibility with the pydata calling method.
+
+`void *Wrap()`
 
 *[FromParaPkg](#)*
 
@@ -113,12 +123,6 @@ Add process or process chain at the tail.
 
 **If ProcOrProcChain is a process chain, a cell will be created and encapsulate the process chain in the Cell.**
 
-*[GetRule](#)*
-
-Get the rules that generates the chain. A valid value can only be returned if the rule was previously set.
-
-`VS_PARAPKGPTR GetRule()`
-
 *[Equals](#)*
 
 Determine if the two process chains are the same.
@@ -162,7 +166,13 @@ Service.PCProcChainBase.RegCallBack(freecallbackobj);
 
 Remove the callback
 
+*[RecordReject](#)*
 
+If Flag is true(default is false), the reject data will be recorded, and can be get using realm's GetReject function.
+
+The return value is RecordRejectID.
+
+`VS_CHAR *RecordReject(VS_BOOL Flag)`
 
 
 

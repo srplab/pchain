@@ -16,6 +16,19 @@ import libstarpy
 
 realm = Service.PCRealmBase._New()
 
+realm_stub = Service.PCRealmStubBase()
+realm.SetRealmStub(realm_stub)
+@realm_stub._RegScriptProc_P("OnCreateData")
+def OnCreateData(self, DataOrType):
+  print(DataOrType)
+
+@realm_stub._RegScriptProc_P("OnCreateProc")
+def OnCreateProc(self, ProcType):
+  print(ProcType)
+
+pydata.pbool.DefineSubType('ddddbbb')
+pydata.pbool.DefineSubType('ddddbbb')
+
 # Define data types
 class Person :
   hair = 'black'
@@ -31,7 +44,6 @@ class Person :
       return False   
 
 pydata.DefineType('PersonClass',Person)
-
 # Define procedure types
 @pyproc.DefineProc('TestProcClass',None,PersonClass)
 def Execute(self) :  
@@ -40,6 +52,23 @@ def Execute(self) :
     return None
   return (0,1,None)
 
+@pyproc.DefineProc('TestProcClass1',None,PersonClass)
+def Execute(self) :  
+  Context = self.Context  #  first must save Context in local variable
+  if Context['SelfObj'].Status < 0 :
+    return None
+  return (0,1,None)
+
+print(TestProcClass1.InputQueueToParaPkg())
+print(TestProcClass1.OutputQueueToParaPkg())
+print(TestProcClass1.OriginOutputQueueToParaPkg())
+print(TestProcClass1.GetOutputType())
+print(TestProcClass1.GetTypeName())
+print(TestProcClass1().IsInstance(TestProcClass1))
+  
+print('TestProcClass1 tag =  ',TestProcClass1.GetTag())
+print('TestProcClass1 tag =  ',TestProcClass1().GetTag())
+print('TestProcClass1 taglabel =  ',TestProcClass1.GetTagLabel())
 
 data = PersonClass(Person(name='aaaa',age=15))
 print('data tag =  ',data.GetTag())
@@ -59,7 +88,7 @@ print('proc tag label =  ',TestProc.GetTagLabel())
 
 
 cell1 = Service.PCCellBase._New()
-cell1.AddProc(TestProcClass)
+cell1.ConnectProc(TestProcClass,TestProcClass1)
 print('cell1 tag =  ',cell1.GetTag())
 print('cell1 tag label =  ',cell1.GetTagLabel())
 
@@ -75,3 +104,29 @@ print('load cell1 tag =  ',load_pkg[0].GetTag())
 print('load cell1 tag label =  ',load_pkg[0].GetTagLabel())
 print('cell1 == load cell1 ? ',cell1.Equals(load_pkg[0]))
 print('cell2 == load cell1 ? ',cell2.Equals(load_pkg[0]))
+
+
+pydata.DefineType('pbool',bool)
+print('pbool Tag = ',pbool.GetTag())
+
+'''
+print('+++++++++++++++++++++++++++++++++++++++')
+realm_stub = Service.PCRealmStubBase()
+realm.SetRealmStub(realm_stub)
+@realm_stub._RegScriptProc_P("OnCreateData")
+def OnCreateData(self, DataOrType):
+  print(DataOrType)
+
+@realm_stub._RegScriptProc_P("OnCreateProc")
+def OnCreateProc(self, ProcType):
+  print(ProcType)
+
+
+data_types = Service.PCDataBase.CollectType()
+for tp in data_types:
+  tp.Notify()
+
+proc_types = Service.PCProcBase.CollectType()
+for tp in proc_types:
+  tp.Notify()
+'''

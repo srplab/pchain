@@ -6,4 +6,10 @@
     <LocalDebuggerWorkingDirectory>..\..\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommand>C:\Python39-64\python.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>P:\work\StarObjectChain\StarObjectChain\examples</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>simple_c_process.py</LocalDebuggerCommandArguments>
+  </PropertyGroup>
 </Project>

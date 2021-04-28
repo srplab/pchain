@@ -36,7 +36,7 @@ result = realm.RunProc((NumberClass(1),NumberClass(2)),None,AddProc)
 print(result[0])
 
 # 1+2+3+4
-result = realm.RunProc((NumberClass(1),NumberClass(2),NumberClass(3),NumberClass(4)),None,AddProc)
+result = realm.RunProc((NumberClass(1),NumberClass(2),NumberClass(3),NumberClass(4),NumberClass(5)),None,AddProc)
 print(result[0])
 
 pchain.cleterm() 

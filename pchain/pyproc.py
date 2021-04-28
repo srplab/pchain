@@ -17,12 +17,13 @@ class PCPyProcResult :
 '''    
     
 PCDataBaseClass = None 
+PCProcBaseClass = None 
 
-def _processresult(SelfObj,result,libstarpy,PCPyDataClass) :
+def _processresult(SelfObj,procname,result,libstarpy,PCPyDataClass) :
   if result == None :
-    return
+    return -1
   #process output  
-  if type(result) == type(()) : 
+  if type(result) == type(()) or type(result) == type([]) : 
     for item in result :
       if isinstance(item,PCPyDataClass) :        
         SelfObj.AddOutputData(item.Wrap())
@@ -30,7 +31,8 @@ def _processresult(SelfObj,result,libstarpy,PCPyDataClass) :
         if type(item) == libstarpy.ObjectClass and PCDataBaseClass._IsInst(item) :
           SelfObj.AddOutputData(item)
         else :
-          return -1  #returns type error
+          raise Exception('Call '+ procname + ' failed, the output is not subtype of PyDataBaseClass')
+          #return -1  #returns type error
   else :
     if isinstance(result,PCPyDataClass) :
       cledata = result.Wrap()
@@ -39,16 +41,52 @@ def _processresult(SelfObj,result,libstarpy,PCPyDataClass) :
       if type(result) == libstarpy.ObjectClass and PCDataBaseClass._IsInst(result) :
         SelfObj.AddOutputData(result)
       else :
-        return -1  #returns type error  
+        raise Exception('Call '+ procname + ' failed, the output is not subtype of PyDataBaseClass')
+        #return -1  #returns type error  
 
-class PCPyProcClass :
+class PCPyProcClass(object) :
   def __init__(self) :
-    self.LocalBuf = None
+    self.IsType = self._IsType
+    self.Wrap = self._Wrap 
     
   def Dup(self) :
-    return self.__class__()    
+    return self.__class__() 
     
-  def Wrap(self) :
+  def __getattr__(self, name):
+    if name == 'Tag' :
+      cle_self = self.Wrap()
+      return cle_self.GetTag() 
+    elif name == 'TagLabel' :
+      cle_self = self.Wrap()
+      return cle_self.GetTagLabel()    
+    elif name == '_ID' :
+      cle_self = self.Wrap()
+      return cle_self._ID
+    else:
+      return self.__getattribute__(name)
+    
+  @classmethod
+  def GetTag(cls) :
+    cleproc = pyprocypemap.get(cls)  
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.GetTag()    
+    
+  @classmethod
+  def GetTagLabel(cls) :
+    cleproc = pyprocypemap.get(cls)  
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.GetTagLabel() 
+    
+  @classmethod
+  def Wrap(cls) :
+    cleproc = pyprocypemap.get(cls)  
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc         
+  
+  def _Wrap(self) :
     import libstarpy
     SrvGroup = libstarpy._GetSrvGroup(0)
     Service = SrvGroup._GetService("","")   
@@ -81,14 +119,7 @@ class PCPyProcClass :
     cleproc = pyprocypemap.get(cls)  
     if cleproc == None :
       raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
-    return cleproc   
-    
-  @classmethod
-  def CreateSubType(cls,NewTypeName,StarNameSpace) :
-    cleproc = pyprocypemap.get(cls)  
-    if cleproc == None :
-      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
-    return cleproc.CreateSubType(NewTypeName,StarNameSpace)   
+    return cleproc
            
   @classmethod
   def IsPChainRawInstance(cls,which) :
@@ -182,9 +213,307 @@ class PCPyProcClass :
           if len(returntuple) == 1 :
             return returntuple[0]
           else :
-            return tuple(returntuple)        
-    #==end
-        
+            return tuple(returntuple)    
+    #==end 
+    
+  @classmethod  
+  def DefineMethod(cls,MethodName) :
+    cleproc = pyprocypemap.get(cls)  
+    if cleproc == None :
+      raise Exception('DefineMethod '+ cls.__name__ + ' failed, it is not registered')
+    def CreateDecorator(func):
+      cleproc._RegScriptProc_P(MethodName,func)
+    return CreateDecorator               
+
+  def GetLocalBuf(self) :
+    cle_self = self.Wrap()
+    return cle_self.GetLocalBuf()
+
+  def GetSignature(self) :
+    cle_self = self.Wrap()
+    return cle_self.GetSignature()
+
+  def RejectInput(self,DataObject) :
+    cle_self = self.Wrap()
+    cle_self.RejectInput(DataObject)
+
+  def AcceptInput(self,DataObject) :
+    cle_self = self.Wrap()
+    cle_self.AcceptInput(DataObject)
+
+  def RecordReject(self,Flag) :
+    cle_self = self.Wrap()
+    return cle_self.RecordReject(Flag)    
+            
+  @classmethod
+  def InputQueueToParaPkg(cls) :
+    cleproc = pyprocypemap.get(cls)  
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.InputQueueToParaPkg()
+
+  @classmethod
+  def GetInputNumber(cls) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.GetInputNumber()
+
+  @classmethod
+  def GetRequestNumber(cls,Index) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.GetRequestNumber(Index)
+                    
+  def IsFromInternal(self,Index) :
+    cle_self = self.Wrap()
+    return cle_self.IsFromInternal(Index)    
+    
+  @classmethod
+  def IsSlave(cls,Index) :
+    cleproc = pyprocypemap.get(cls)  
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.IsSlave(Index)      
+    
+  @classmethod
+  def IsMustExist(cls,Index) :
+    cleproc = pyprocypemap.get(cls)  
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.IsMustExist(Index)
+
+  @classmethod
+  def _to_pydata(cls,returnval) :
+    if returnval == None :
+      return None  
+    from pchain import pydata  
+    from pchain.pydata import PCPyDataClass
+    val = pydata.UnWrap(returnval)  
+    if isinstance(val,PCPyDataClass) == True :      
+      return val
+    else :
+      return returnval
+
+  @classmethod
+  def _to_pydatatype(cls,returnval) :
+    if returnval == None :
+      return None  
+    from pchain import pydata  
+    from pchain.pydata import PCPyDataClass
+    val = pydata.UnWrap(returnval)  
+    import libstarpy
+    if val == None or type(val) == libstarpy.ObjectClass :
+      return returnval
+    if val == PCPyDataClass or issubclass(val,PCPyDataClass) == True :   
+      return val
+    else :
+      return returnval
+
+  @classmethod
+  def _to_pyproc(cls,returnval) :
+    if returnval == None :
+      return None
+    val = pyproc.UnWrap(returnval)  
+    if isinstance(val,PCPyProcClass) == True :      
+      return val
+    else :
+      return returnval  
+
+  def GetMasterInput(self,Index) :
+    cle_self = self.Wrap()
+    returnval = cle_self.GetMasterInput(Index) 
+    if returnval == None :
+      return returnval
+    return self._to_pydata(returnval)  
+    
+  def GetMasterInputType(self,Index) :
+    cle_self = self.Wrap()
+    returnval = cle_self.GetMasterInputType(Index) 
+    if returnval == None :
+      return returnval
+    return self._to_pydatatype(returnval)    
+
+  @classmethod
+  def GetInputType(cls,Index) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    returnval = cleproc.GetInputType(Index)
+    if returnval == None :
+      return returnval
+    return cls._to_pydatatype(returnval)
+
+  @classmethod
+  def SetInputType(cls,Index,val) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.SetInputType(Index,val)
+    
+  def IsEnough(self,Index) :
+    cle_self = self.Wrap()
+    return cle_self.IsEnough(Index)   
+
+  @classmethod
+  def GetInputTypeEx(cls,Index,val) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    result = cleproc.GetInputTypeEx()
+    returnval = []
+    for item in result :
+      returnval.append(cls._to_pydatatype(item))
+    return returnval
+ 
+  def DataCanBeAsInput(self,PCData,IncludeCellProcChain) :
+    cle_self = self.Wrap()
+    return cle_self.DataCanBeAsInput(PCData,IncludeCellProcChain)   
+            
+  def DataCanBeAsOutput(self,PCData,IncludeCellProcChain) :
+    cle_self = self.Wrap()
+    return cle_self.DataCanBeAsOutput(PCData,IncludeCellProcChain) 
+    
+  def ProcCanBeAsInput(self,PCProc) :
+    cle_self = self.Wrap()
+    return cle_self.ProcCanBeAsInput(PCProc) 
+
+  def OutputToParaPkg(self) :
+    cle_self = self.Wrap()
+    result = cle_self.OutputToParaPkg() 
+    returnval = []
+    for item in result :
+      returnval.append(self._to_pydata(item))
+    return returnval
+
+  @classmethod
+  def GetOutputNumber(cls) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.GetOutputNumber()
+
+  @classmethod
+  def OutputQueueToParaPkg(cls) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.OutputQueueToParaPkg()
+
+  @classmethod
+  def OriginOutputQueueToParaPkg(cls) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.OriginOutputQueueToParaPkg()
+
+  @classmethod
+  def GetOutputType(cls) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    result = cleproc.GetOutputType()
+    returnval = []
+    for item in result :
+      returnval.append(cls._to_pydatatype(item))
+    return returnval
+
+  @classmethod
+  def GetOriginOutputType(cls) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    result = cleproc.GetOriginOutputType()
+    returnval = []
+    for item in result :
+      returnval.append(cls._to_pydatatype(item))
+    return returnval
+
+  def ClearOutputData(self,DataClass) :
+    cle_self = self.Wrap()
+    return cle_self.ClearOutputData(DataClass)  
+    
+  def AddOutputData(self,*args) :
+    cle_self = self.Wrap()
+    return cle_self.AddOutputData(*args)      
+    
+  def AddOutputDataEx(self,DataObject,*SourceData) :
+    cle_self = self.Wrap()
+    return cle_self.AddOutputDataEx(DataObject,*SourceData)  
+    
+  def GetCell(self) :
+    cle_self = self.Wrap()
+    return cle_self.GetCell()     
+    
+  def Suspend(self) :
+    cle_self = self.Wrap()
+    cle_self.Suspend()        
+    
+  def Resume(self) :
+    cle_self = self.Wrap()
+    cle_self.Resume()     
+
+  def Continue(self,Delay) :
+    cle_self = self.Wrap()
+    cle_self.Continue(Delay)     
+
+  def GetRootProc(self) :
+    cle_self = self.Wrap()
+    result = cle_self.GetRootProc()    
+    return self._to_pyproc(result)
+    
+  def GetPrevProc(self) :
+    cle_self = self.Wrap()
+    result = cle_self.GetPrevProc() 
+    returnval = []
+    for item in result :
+      returnval.append(self._to_pyproc(item))
+    return returnval
+    
+  def GetNextProc(self) :
+    cle_self = self.Wrap()
+    result = cle_self.GetNextProc()    
+    return self._to_pyproc(result)    
+    
+  def IsPrevProcFinish(self,PrevPCProc,PCDataClass) :
+    cle_self = self.Wrap()
+    return cle_self.IsPrevProcFinish(PrevPCProc,PCDataClass)        
+    
+  def IsCurrent(self) :
+    cle_self = self.Wrap()
+    return cle_self.IsCurrent()           
+	
+  @classmethod    
+  def IsType(cls) :
+    return True 
+  def _IsType(self) :
+    cle_self = self.Wrap()
+    return cle_self.IsType()        
+
+  @classmethod
+  def GetTypeName(cls) :
+    cleproc = pyprocypemap.get(cls)
+    if cleproc == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cleproc.GetTypeName()
+    
+  def Equals(self,PCProc) :
+    cle_self = self.Wrap()
+    return cle_self.Equals(PCProc)   
+
+  def IsInstance(self,PCProc) :
+    cle_self = self.Wrap()
+    return cle_self.IsInstance(PCProc)
+
+  def RegCallBack(self,TargetObject) :
+    cle_self = self.Wrap()
+    cle_self.RegCallBack(TargetObject) 
+
+  def UnRegCallBack(self,TargetObject) :
+    cle_self = self.Wrap()
+    cle_self.UnRegCallBack(TargetObject)
+
 def GetCleType(tp):
   cleproc = pyprocypemap.get(tp)  
   if cleproc == None :
@@ -202,16 +531,20 @@ def Register(tp,InputQueue,OutputQueue) :
   global PCDataBaseClass
   if PCDataBaseClass == None :
     PCDataBaseClass = Service.PCDataBase
+  global PCProcBaseClass
+  if PCProcBaseClass == None :
+    PCProcBaseClass = Service.PCProcBase
     
-  import sys
-  f = list(sys._current_frames().values())[0] 
+  import inspect
+  f = inspect.stack()[1][0]  
+  _m_name = f.f_locals['__name__']
   StarNameSpace = None
-  _m_name = f.f_back.f_globals.get('__name__')
   if _m_name == None :
     pass
   elif _m_name == '__main__' :
     pass
   else :
+    _m_name = _m_name.replace('.','_')
     StarNameSpace = Service._GetObject(_m_name)
     if StarNameSpace == None :
       StarNameSpace = Service.StarObjectSpace._New(_m_name)
@@ -233,7 +566,10 @@ def _Register(tp,StarNameSpace,InputQueue,OutputQueue) :
   global PCDataBaseClass
   if PCDataBaseClass == None :
     PCDataBaseClass = Service.PCDataBase
-    
+  global PCProcBaseClass
+  if PCProcBaseClass == None :
+    PCProcBaseClass = Service.PCProcBase
+        
   if StarNameSpace == None :
     _allobject = SrvGroup._NewParaPkg()
     Service._GetObjectEx3(tp.__name__,_allobject)
@@ -300,7 +636,7 @@ def _Register(tp,StarNameSpace,InputQueue,OutputQueue) :
     @cleproc._RegScriptProc_P('Execute')
     def cleproc_Execute(SelfObj,Realm,Cell,Runner) :
       from pchain import pydata
-      pythonobj = UnWrap(SelfObj)     
+      pythonobj = UnWrap(SelfObj)  
       in1 = SelfObj.InputToParaPkg()
       SrvGroup = libstarpy._GetSrvGroup(0)
       pythonobj.Context = {'SelfObj':SelfObj,'Realm':Realm,'Cell':Cell,'Runner':Runner}
@@ -352,8 +688,8 @@ def _Register(tp,StarNameSpace,InputQueue,OutputQueue) :
             raise Exception('result from proc '+pythonobj.__class__.__name__+' must be tuple (returnvalue,processinput,result)')
       if result[0] < 0 :
         return -1
-      else :     
-        _processresult(SelfObj,result[2],libstarpy,PCPyDataClass)
+      else :  
+        _processresult(SelfObj,tp.__name__,result[2],libstarpy,PCPyDataClass)
       if result[0] == 0 or result[0] == 1 or result[0] == 2 or result[0] == 3 :
         return result[0]
       else :
@@ -371,7 +707,7 @@ def _Register(tp,StarNameSpace,InputQueue,OutputQueue) :
         
       pythonobj = UnWrap(SelfObj)       
       returntuple = pythonobj(*Args)
-      if type(returntuple) == type(()) :
+      if type(returntuple) == type(()) or type(returntuple) == type([]) :
         ParaPkg = SrvGroup._NewParaPkg()
         for item in returntuple :
           if isinstance(item,PCPyDataClass) :
@@ -396,17 +732,52 @@ def _Register(tp,StarNameSpace,InputQueue,OutputQueue) :
     if StarNameSpace == None :
       pass
     else :
-      StarNameSpace.SetObject(cleproc)    
-    return tp
+      StarNameSpace.SetObject(cleproc)  
+        
+    cleproc.Notify()
+    
+  return tp
     
 def UnWrap(cleobj) :
-  localobj = cleobj.GetAttachObject()
-  if localobj == None :
-    return None    
-  return localobj._GetRawObject()     
+  import libstarpy
+  if type(cleobj) == libstarpy.ObjectClass :
+    if PCProcBaseClass._IsInst(cleobj) :
+      pass
+    else :  #for some case, cle object attach raw data directly
+      rawinst = cleobj._GetRawObject()
+      return rawinst
+  else :
+    return None
+  if cleobj.TypeFlag == True :
+    localobj = cleobj.GetAttachObject()
+    if localobj == None :
+      return None    
+    return localobj._GetRawObject()   
+  else :
+    #has attach pyproc
+    localobj = cleobj.GetAttachObject()   
+    if localobj == None :
+      pass
+    else :
+      return localobj._GetRawObject() 
+    #create new pyproc
+    cleobjtype = cleobj.GetType()
+    localobj = cleobjtype.GetAttachObject()
+    if localobj == None :
+      return None    
+    rawproc = localobj._GetRawObject()   
+    if rawproc == None :
+      return None  
+    SrvGroup = libstarpy._GetSrvGroup(0)
+    Service = SrvGroup._GetService("","")        
+    newrawproc = rawproc.__class__()
+    attach_cleobj = Service._New()
+    attach_cleobj._AttachRawObject(newrawproc,False)      
+    cleobj.SetAttachObject(attach_cleobj)
+    newrawproc.cleobjid = cleobj._ID
+    return newrawproc    
 
-
-def _DefineType(globaltbl,tpname,InputDataType,OutputDataType,RawInputOutput,IsAsync,PyFunc = None) :
+def _DefineType(globaltbl,localtbl,tpname,InputDataType,OutputDataType,RawInputOutput,IsAsync,PyFunc = None) :
   if PyFunc == None :
     def CreateDecorator(func):
       DefineType(tpname,StarNameSpace,InputDataType,OutputDataType,RawInputOutput,IsAsync,func)
@@ -419,6 +790,9 @@ def _DefineType(globaltbl,tpname,InputDataType,OutputDataType,RawInputOutput,IsA
   global PCDataBaseClass
   if PCDataBaseClass == None :
     PCDataBaseClass = Service.PCDataBase     
+  global PCProcBaseClass
+  if PCProcBaseClass == None :
+    PCProcBaseClass = Service.PCProcBase    
   
   StarNameSpace = None
   _m_name = globaltbl.get('__name__')
@@ -427,6 +801,7 @@ def _DefineType(globaltbl,tpname,InputDataType,OutputDataType,RawInputOutput,IsA
   elif _m_name == '__main__' :
     pass
   else :
+    _m_name = _m_name.replace('.','_')
     StarNameSpace = Service._GetObject(_m_name)
     if StarNameSpace == None :
       StarNameSpace = Service.StarObjectSpace._New(_m_name)
@@ -480,6 +855,7 @@ class {0}(PCPyProcClass) :
 pyproc._Register({0},StarNameSpace,InputPyType,RetPyType)
 {0}.GetType().IsAsync = IsAsync
 globaltbl['{0}'] = {0}
+localtbl['{0}'] = {0}
 '''      
 
   local_env = {}
@@ -489,43 +865,44 @@ globaltbl['{0}'] = {0}
   local_env['WrapPyFunc'] = PyFunc
   local_env['RawInputOutput'] = RawInputOutput
   local_env['globaltbl'] = globaltbl
+  local_env['localtbl'] = localtbl
   local_env['IsAsync'] = IsAsync
   
   exec(str.format(proc_class_rawtext,tpname),local_env)
   return globaltbl[tpname]
 
 def DefineProc(tpname,InputDataType,OutputDataType,PyFunc = None) :
-  import sys
-  f = list(sys._current_frames().values())[0] 
+  import inspect
+  f = inspect.stack()[1][0]  
   if PyFunc == None :
     def CreateDecorator(func):
-      _DefineType(f.f_back.f_globals,tpname,InputDataType,OutputDataType,False,False,func)
+      _DefineType(f.f_globals,f.f_locals,tpname,InputDataType,OutputDataType,False,False,func)
     return CreateDecorator 
-  return _DefineType(f.f_back.f_globals,tpname,InputDataType,OutputDataType,False,False,PyFunc)
+  return _DefineType(f.f_globals,f.f_locals,tpname,InputDataType,OutputDataType,False,False,PyFunc)
   
 def DefineRawProc(tpname,InputDataType,OutputDataType,PyFunc = None) :
-  import sys
-  f = list(sys._current_frames().values())[0] 
+  import inspect
+  f = inspect.stack()[1][0]  
   if PyFunc == None :
     def CreateDecorator(func):
-      _DefineType(f.f_back.f_globals,tpname,InputDataType,OutputDataType,True,False,func)
+      _DefineType(f.f_globals,f.f_locals,tpname,InputDataType,OutputDataType,True,False,func)
     return CreateDecorator 
-  return _DefineType(f.f_back.f_globals,tpname,InputDataType,OutputDataType,True,False,PyFunc)  
+  return _DefineType(f.f_globals,f.f_locals,tpname,InputDataType,OutputDataType,True,False,PyFunc)  
   
 def DefineAsyncProc(tpname,InputDataType,OutputDataType,PyFunc = None) :
-  import sys
-  f = list(sys._current_frames().values())[0] 
+  import inspect
+  f = inspect.stack()[1][0]  
   if PyFunc == None :
     def CreateDecorator(func):
-      _DefineType(f.f_back.f_globals,tpname,InputDataType,OutputDataType,False,True,func)
+      _DefineType(f.f_globals,f.f_locals,tpname,InputDataType,OutputDataType,False,True,func)
     return CreateDecorator 
-  return _DefineType(f.f_back.f_globals,tpname,InputDataType,OutputDataType,False,True,PyFunc)
+  return _DefineType(f.f_globals,f.f_locals,tpname,InputDataType,OutputDataType,False,True,PyFunc)
   
 def DefineAsyncRawProc(tpname,InputDataType,OutputDataType,PyFunc = None) :
-  import sys
-  f = list(sys._current_frames().values())[0] 
+  import inspect
+  f = inspect.stack()[1][0]  
   if PyFunc == None :
     def CreateDecorator(func):
-      _DefineType(f.f_back.f_globals,tpname,InputDataType,OutputDataType,True,True,func)
+      _DefineType(f.f_globals,f.f_locals,tpname,InputDataType,OutputDataType,True,True,func)
     return CreateDecorator 
-  return _DefineType(f.f_back.f_globals,tpname,InputDataType,OutputDataType,True,True,PyFunc)   
+  return _DefineType(f.f_globals,f.f_locals,tpname,InputDataType,OutputDataType,True,True,PyFunc)   

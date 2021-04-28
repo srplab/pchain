@@ -36,10 +36,16 @@ def Execute(self,url) :
 
   try:    
     libstarpy._SRPUnLock()  # release cle lock, before enter wait
-    import urllib2
-    req = urllib2.Request(url.value())
-    fd = urllib2.urlopen(req)
-    result = fd.read()
+    result = None
+    if pchain.ispython2 == True :
+      import urllib2
+      req = urllib2.Request(url.value())
+      fd = urllib2.urlopen(req)
+      result = fd.read()
+    else :
+      import urllib.request
+      fd = urllib.request.urlopen(url.value())
+      result = fd.read()
     libstarpy._SRPLock()    # capture cle lock,
     return (0,1,WebPageClass(result))         
   except Exception as exc:
@@ -47,10 +53,8 @@ def Execute(self,url) :
     return (0,1,None)   
     
 #create sub proc type
-Parent_DownLoadUrlProc.CreateSubType("DownLoadUrlProc",None)    
-
-print(Service.DownLoadUrlProc.IsAsync)
-result = realm.RunProc(UrlClass('http://www.srplab.com'),None,Service.DownLoadUrlProc)
+ProcInst = Parent_DownLoadUrlProc()
+result = realm.RunProc(UrlClass('http://www.srplab.com'),None,ProcInst)
 print(result)
 
 # enter loop

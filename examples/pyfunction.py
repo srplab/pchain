@@ -30,9 +30,10 @@ result = func(PythonNumberClass(1.0),PythonNumberClass(2.0),PythonNumberClass(3.
 '''
 
 result = PyFuncProc.call(PythonNumberClass(1.0),PythonNumberClass(2.0),PythonNumberClass(3.0))
+print(result)
 print(result.value())
-print(result.Wrap().GetSource())
-print(result.Wrap().GetOwnerProc())
+print(result.GetSource())
+print(result.GetOwnerProc())
 
 # finish
 pchain.cleterm() 

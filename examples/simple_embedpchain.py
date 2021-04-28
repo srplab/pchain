@@ -2,7 +2,8 @@ import sys
 import os
 
 #first init cle
-import libstarpy
+#import libstarpy
+import libstar_python39
 Service=libstarpy._InitSimple("test","123",0,0);
 SrvGroup = Service._ServiceGroup;
 
@@ -50,14 +51,6 @@ cell.AddProc(InputProc,OutputProc)
 
 realm.AddCell(cell)
 realm.Execute()
-
-activeset = realm.GetActiveObject(None,1.0,0)
-print(activeset)
-activesetTag = realm.GetTagEx(activeset)
-print(activesetTag)
-
-for t in activeset :
-  print( t.GetTagLabel())
   
 # enter loop
 # pchain.cleloop()

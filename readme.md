@@ -2,8 +2,6 @@
 
 <p  align="center">Foundation of flexible, shareable and creative data-driven programming technology</p>
 
-<p  align="center">Data driven process, relation generate rule</p>
-
 ![pchain.png](./doc/pchain.png)
 
 Introduction
@@ -13,7 +11,7 @@ Current programming uses pre-designed logic, which consist of multiple processes
     
 The current development of programming technology focuses on programming languages (the rise of various programming languages, constantly updated, and constantly introducing new versions), improving performance, simplifying grammar, reducing or eliminating programming errors, and simplifying the concurrent process. But in terms of programming, it is still based on traditional logic sequences, without paying too much attention to flexibility, adaptability and creativity.
     
-The process chain is a new programming technology aim to increase the flexibility and buildability of the program. The process chain introduces the management of data and processes, adds definitions of data management types, descriptions of process input data types, and output data types so that process chains can be built based on input data types and output data object types. The scheduling of data objects is the core of the process chain. During execution, the process chain automatically matches or controls the data objects based on the it's type, and the process processes the data until there are no new data or processes. The process can be adjusted according to the rules to obtain the desired output. The process chain provides the basis for rule object management, but the rules themselves are not within the scope of the process chain, at least not currently.
+The process chain is a new programming technology aim to increase the flexibility and buildability of the program. The process chain introduces the management of data and processes, adds definitions of data management types, descriptions of process input data types, and output data types so that process chains can be built based on input data types and output data object types. The scheduling of data objects is the core of the process chain. During execution, the process chain automatically matches or controls the data objects based on the it's type, and the process processes the data until there are no new data or processes. 
 
 The process chain records the relationship between data objects and the relationship between data and processes. These relationships can be used as the basis for future data object processing.
 
@@ -35,8 +33,7 @@ The process chain introduces data management objects and process management obje
 * Support for running processes directly on data objects, or collections of data objects [Example](./examples/data_runproc.py)
 * Data, process and process chain can register callback functions through RegCallBack to perform some processing when these objects are released.
 * At any time, you can create realm, add data and procedures, execute and get results. You can also perform a simple process via a data object or through the realm RunProc functions.
-* Support for **[refining](#)**, by dynamically define new sub data types based on the results of data object classification or relation, and correct the data type output by the process dynamically through [OnOutputDataToEnv](./doc/pcrealmbase.md) callback of realm, [wrap a classifier with process in a cell](./examples/subproctype_and_output_classfier.py) or create a new process via [CreateSubType/SetInputType](./doc/pcprocbase.md), and then modifying the input data type and output data type via [RedirectOutput](./examples/simple_redirect_outputype.py).
-* Support discovering and record relationships between data objects, relationships between data objects and process objects, which will serve as the basis for rule generation
+* Support for **[refining](#)**, by dynamically define new sub data types based on the results of data object classification or relation, and correct the data type output by the process dynamically through [OnOutputDataToEnv](./doc/pcrealmbase.md) callback of realm.
 * Process chains can be stored in json string format and can be published to the internet for easy sharing between applications.
 * Support package management, can package data objects and processing objects to publish
 
@@ -53,7 +50,6 @@ The process chain implements the following classes:
 * [PCProcBase](./doc/pcprocbase.md). The base class of the process. it manages input and output data types, and the execution function of the process.
 * [PCProcChainBase](./doc/pcprocchainbase.md). The base class of the process chain, which stores multiple process objects.
 * [PCCellBase](./doc/pccellbase.md),  Subclass of pcprocbase, basic scheduling unit, which may contain multiple process chains.
-* [PCRuleRase](./doc/pcrulebase.md), base class of rules, it's features will be expanded in the future.
 
 The most basic is the pcdatabase and pcprocbase. The relationship between them is as follows,
 
@@ -499,52 +495,6 @@ result = realm.RunProc(UrlClass('http://www.srplab.com/en/index.html'),None,load
 print(result)
 ```
 
-
-Relationships between objects
------
-
-Given the input data, after a series of processing, the correct output is obtained. There is a relationship between the data:
-
-* The data is generated by which process
-* The data is generated base on which datas
-* What datas are generated from the data
-
-The relationship between data is the basis for learning and forming knowledge. By analyzing the relationship between data, a general rule is formed, which is knowledge. Therefore, it is very important to collect the relationship between the data. The process chain decomposes the processing of data into multiple processes that form the process chain and produce the desired output. In this process, the relationship between data can be collected through the management of data and processes.
-
-A simple example is given in the link [learn_length](./doc/learn_length.md) to illustrate the relationship between data objects in the process chain.
-
-This example defines two procedures. The data set used for learning is two sets of strings. The purpose is to get the process related to the string 'length', that is, what is the meaning of 'length'.
-
-```
-['qqqwwweee','length','9']
-['tttttttt','length','8']
-```
-
-Running this example will get the following output:
-
-```
-find relation :  [context:length]source:StringClass -> process:MyProc1
-```
-
-The process chain is a basic process scheduling platform that supports the generation and use of relationships and rules. But on how to generate relationships and rules, it is a more esoteric field.
-
-Enter the relationship into neo4j and get the relationship diagram as follows:
-
-![relation_2.png](./doc/relation_2.png)
-
-The example is located at,
-
-[learn_length_neo4j](./examples/studylen_proc_neo4j.py)
-
-Example of pchain working with clips expert system
------
-
-Clips is a rule-based expert system. The project **[clipspy, python3](https://pypi.org/project/clipspy/)** provides a interface that can be called via python. When the pchain is executed, the realm first generates a callback event OnBeforeExecute. This callback is used to generate the process of processing the data and add the process to the realm to process the data object. In this process, a rule-based approach can be employed.
-
-For more details, please refer to
-
-[pchain_clips](./doc/pchain_clips.md)
-
 Interaction with other programming languages
 -----
 
@@ -557,25 +507,6 @@ Pchain develops based on the cle platform and supports multiple languages. Both 
 You can create an instance of a Realm object in a different language and then define a callback function for the instance. Handling OnBeforeExecute, OnCellFinish and other callback functions
 
 [interop_with_java_realm_callback](./doc/interop_with_java_realm_callback.md) is an example.
-
-A kind of system processing flow 
------
-
-* Step1: Data input to realm
-* Step2: In the OnBeforeExecute callback,
-> * a) Each data has a unique tag, based on the tag activating the corresponding node in rule network node
-> * b) Activating next node or nodes by the rule network based on the relationship between the nodes
-. For each activated node:
->> * 1) If it is data object, restore the stored data, extract the sub-network that activates the node based on connections of rule netwotk, then attach it to the data as a rule, and add it to the realm.
->> * 2) If it is a process, xtract the sub-network that activates the node based on connections of rule netwotk, as a rule, attach it to the process. Then add the process to the realm.
-> * c) Repeat the above process until you can't activate more nodes
-
-* Step3: Execute realm, get the output data. The output data is unconfirmed(maybe correct or not) waiting for the next frame of data.
-* Step4: After the next frame of data is added,
-> * a) The frame data is used as fact data to confirm the previously generated data. Two sets of data can be processed by using a new realm.
->> * 1) If confirmed, correct the rule network connection weight according to the additional rules for generating data
->> * 2) If it is denied (more difficult to judge), also modify the network weight
-> * b) Perform step 1
 
 
 <h2 align="center"><a href="./doc/pchain.md">Next Topic : pchain<a></h2>

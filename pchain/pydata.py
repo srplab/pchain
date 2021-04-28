@@ -16,9 +16,14 @@ pydatatypemap = {}
 
 PCDataBaseClass = None
 
-class PCPyDataClass :
+class PCPyDataClass(object) :
   def __init__(self,val) :
     self.val = val
+    
+    self.GetTag = self._GetTag
+    self.GetTagLabel = self._GetTagLabel 
+    self.IsType = self._IsType    
+    self.Wrap = self._Wrap
        
   # need restore
   def __del__ (self):
@@ -45,6 +50,33 @@ class PCPyDataClass :
     raise Exception('Load function is not defined')
   '''    
 
+  def __getattr__(self, name):
+    if name == 'Tag' :
+      cle_self = self.Wrap()
+      return cle_self.GetTag() 
+    elif name == 'TagLabel' :
+      cle_self = self.Wrap()
+      return cle_self.GetTagLabel()    
+    elif name == '_ID' :
+      cle_self = self.Wrap()
+      return cle_self._ID
+    else:
+      return self.__getattribute__(name)
+      
+  @classmethod
+  def GetTag(cls) :
+    cledata = pydatatypemap.get(cls)
+    if cledata == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cledata.GetTag()     
+    
+  @classmethod
+  def GetTagLabel(cls) :
+    cledata = pydatatypemap.get(cls)
+    if cledata == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cledata.GetTagLabel()    
+        
   def Save(self) :
     #raise Exception('Save function is not defined for '+str(self))   
     import pickle
@@ -90,9 +122,16 @@ class PCPyDataClass :
     raise Exception('ToParaPkg function is not supported ')      
     
   def value(self) :
-    return self.val    
-  
-  def Wrap(self) :
+    return self.val   
+    
+  @classmethod
+  def Wrap(cls) :
+    cledata = pydatatypemap.get(cls)
+    if cledata == None :
+      raise Exception('Wrap '+ cls.__name__ + ' failed, it is not registered')
+    return cledata        
+
+  def _Wrap(self) :
     import libstarpy
     SrvGroup = libstarpy._GetSrvGroup(0)
     if SrvGroup == None :
@@ -142,6 +181,8 @@ class PCPyDataClass :
 
     self.cleobjid = newdata._ID
     
+    newdata.Notify()
+    
     return newdata
   
   @classmethod
@@ -156,6 +197,15 @@ class PCPyDataClass :
     if isinstance(which,PCPyDataClass) :
       return True
     return False  
+    
+  @classmethod  
+  def DefineMethod(cls,MethodName) :
+    cledata = pydatatypemap.get(cls) 
+    if cledata == None :
+      raise Exception('DefineMethod '+ cls.__name__ + ' failed, it is not registered')
+    def CreateDecorator(func):
+      cledata._RegScriptProc_P(MethodName,func)
+    return CreateDecorator           
 
   '''              
   def GetType(self) :
@@ -181,6 +231,10 @@ class PCPyDataClass :
     cle_self = self.Wrap()
     return cle_self.SaveTo(ValueBuf)
     
+  def SaveToString(self) :
+    cle_self = self.Wrap()
+    return cle_self.SaveToString()    
+    
   @classmethod
   def LoadFrom(cls,ValueBuf) :
     cle_self = cls.GetType()
@@ -191,6 +245,17 @@ class PCPyDataClass :
     if isinstance(val,PCPyDataClass) == True :
       return val
     return bufobj
+    
+  @classmethod
+  def LoadFromString(cls,ValueBuf) :
+    cle_self = cls.GetType()
+    bufobj = cle_self.LoadFromString(ValueBuf)
+    if bufobj == None :
+      return None
+    val = UnWrap(bufobj)
+    if isinstance(val,PCPyDataClass) == True :
+      return val
+    return bufobj    
         
   def AddSource(self,SourceData) :
     import libstarpy
@@ -236,7 +301,7 @@ class PCPyDataClass :
         returnval.append(val)  
       else :
         returnval.append(item)  
-    return returnval   
+    return returnval
     
   def GetOwnerProc(self) :
     cle_self = self.Wrap()
@@ -249,6 +314,13 @@ class PCPyDataClass :
     if isinstance(val,PCPyProcClass) == True :
       return val
     return result
+    
+  @classmethod    
+  def IsType(cls) :
+    return True 
+  def _IsType(self) :
+    cle_self = self.Wrap()
+    return cle_self.IsType()     
     
   def IsSource(self,SourceData,MustDirect) :
     cle_self = self.Wrap()
@@ -274,23 +346,7 @@ class PCPyDataClass :
   #def Equals(self,PCData) :
   #  cle_self = self.Wrap()
   #  return cle_self.Equals(PCData)
-    
-  def SetRuleAttach(self,PCRule) :
-    cle_self = self.Wrap()
-    return cle_self.SetRuleAttach(PCRule)
-    
-  def GetRuleAttach(self) :
-    cle_self = self.Wrap()
-    result = cle_self.GetRuleAttach()
-    val = []
-    for item in result :
-      val.append(item)
-    return val
-    
-  def HasRuleAttach(self) :
-    cle_self = self.Wrap()
-    return cle_self.HasRuleAttach()
-    
+        
   def Approved(self) :
     cle_self = self.Wrap()
     cle_self.Approved()
@@ -368,14 +424,14 @@ class PCPyDataClass :
   def GetSignature(self) :
     cle_self = self.Wrap()
     return cle_self.GetSignature()       
-        
-  def GetTag(self) :
+   
+  def _GetTag(self) :
     cle_self = self.Wrap()
     return cle_self.GetTag()   
     
-  def GetTagLabel(self) :
+  def _GetTagLabel(self) :
     cle_self = self.Wrap()
-    return cle_self.GetTagLabel()       
+    return cle_self.GetTagLabel()      
     
   def SetUniformTick(self,Tick) :
     cle_self = self.Wrap()
@@ -410,15 +466,7 @@ class PCPyDataClass :
     
   def RunProc(self,val) :
     cle_self = self.Wrap()
-    return cle_self.RunProc(val)   
-    
-  def IsProperty(self,val) :
-    cle_self = self.Wrap()
-    return cle_self.IsProperty(val) 
-    
-  def HasProperty(self) :
-    cle_self = self.Wrap()
-    return cle_self.HasProperty() 
+    return cle_self.RunProc(val)
     
   def GetDataSetBase(self) :
     cle_self = self.Wrap()
@@ -430,15 +478,33 @@ class PCPyDataClass :
 
   def GetBufDataBase(self) :
     cle_self = self.Wrap()
-    return cle_self.GetBufDataBase()                   
-        
+    return cle_self.GetBufDataBase()     
+
+  @classmethod
+  def DefineSubType(cls,SubTypeName) :
+    cle_self = cls.GetType()
+    return cle_self.DefineSubType(SubTypeName)
+
+  @classmethod
+  def CastFrom(cls,ParentDataType_Data) :
+    cle_self = cls.GetType()
+    return cle_self.CastFrom(ParentDataType_Data)
+    
+  def RegCallBack(self,TargetObject) :
+    cle_self = self.Wrap()
+    cle_self.RegCallBack(TargetObject) 
+
+  def UnRegCallBack(self,TargetObject) :
+    cle_self = self.Wrap()
+    cle_self.UnRegCallBack(TargetObject)       
+            
 def GetCleType(tp):
   cledata = pydatatypemap.get(tp)
   if cledata == None :
     raise Exception('Wrap '+ tp.__name__ + ' failed, it is not registered')
   return cledata    
   
-def O_Register(datatype,tp) :
+def Register(tp) :
   import libstarpy
   SrvGroup = libstarpy._GetSrvGroup(0)
   Service = SrvGroup._GetService("","")  
@@ -447,15 +513,18 @@ def O_Register(datatype,tp) :
   if PCDataBaseClass == None :  
     PCDataBaseClass = Service.PCDataBase  
   
-  import sys
-  f = list(sys._current_frames().values())[0] 
-  StarNameSpace = None
-  _m_name = f.f_back.f_back.f_globals.get('__name__')
+  import inspect    
+  f = inspect.stack()[1][0]
+  globaltbl = f.f_globals
+  localtbl = f.f_locals
+  _m_name = f.f_locals['__name__']
+  StarNameSpace = None  
   if _m_name == None :
     pass
   elif _m_name == '__main__' :
     pass
   else :
+    _m_name = _m_name.replace('.','_')
     StarNameSpace = Service._GetObject(_m_name)
     if StarNameSpace == None :
       StarNameSpace = Service.StarObjectSpace._New(_m_name)
@@ -464,13 +533,12 @@ def O_Register(datatype,tp) :
         pass
       else :
         raise Exception('Register '+tp.__name__+' failed, there has cle object which is not instance of StarNameSpace named '+_m_name)
-  return _Register(datatype,tp,StarNameSpace)
-  
-def Register(tp) :  
-  return O_Register(None,tp)
-  
-def RegisterEx(datatype,tp) :  
-  return O_Register(datatype,tp)
+  _Register(None,tp,StarNameSpace)
+
+  newtype = globaltbl[tp.__name__]
+  newtype.cached_globaltbl = globaltbl
+  newtype.cached_localtbl = localtbl
+  return newtype
     
 def _Register(datatype,tp,StarNameSpace=None) :
   import libstarpy
@@ -600,16 +668,23 @@ def _Register(datatype,tp,StarNameSpace=None) :
       rawinst = rawobject._GetRawObject()   
       if rawinst == None :
         return
-      if isinstance(rawinst,PCPyDataClass) == True :
-        rawinst.RestoreDataObjectProperity = CleObjectProperty 
-      else :
-        return
+      try:
+          if isinstance(rawinst,PCPyDataClass) == True :
+            rawinst.RestoreDataObjectProperity = CleObjectProperty
+          else :
+            return
+      except Exception as exc:
+        pass
                       
-    pydatatypemap[tp] = cledata   
-  if StarNameSpace == None :
-    pass
-  else :
-    StarNameSpace.SetObject(cledata)
+    pydatatypemap[tp] = cledata  
+    
+    if StarNameSpace == None :
+      pass
+    else :
+      StarNameSpace.SetObject(cledata)
+    
+    cledata.Notify()
+    
   return tp
   
 def UnWrap(cleobj) :
@@ -622,7 +697,7 @@ def UnWrap(cleobj) :
       return rawinst
   else :
     return None
-  if cleobj.IsType == True :
+  if cleobj.TypeFlag == True :
     bufobj = cleobj.GetDataTypeClass()
     if bufobj == None :
       return None
@@ -642,7 +717,7 @@ def UnWrap(cleobj) :
         newrawdata.classinst = rawdata
         return newrawdata               
 
-def _DefineType(globaltbl,datatype,tpname,pyrawtype) :
+def _DefineType(globaltbl,localtbl,datatype,tpname,pyrawtype,StarNameSpaceIsValid,InputStarNameSpace) :
   import libstarpy
   SrvGroup = libstarpy._GetSrvGroup(0)
   Service = SrvGroup._GetService("","")  
@@ -652,20 +727,24 @@ def _DefineType(globaltbl,datatype,tpname,pyrawtype) :
     PCDataBaseClass = Service.PCDataBase    
   
   StarNameSpace = None
-  _m_name = globaltbl.get('__name__')
-  if _m_name == None :
-    pass
-  elif _m_name == '__main__' :
-    pass
-  else :
-    StarNameSpace = Service._GetObject(_m_name)
-    if StarNameSpace == None :
-      StarNameSpace = Service.StarObjectSpace._New(_m_name)
+  if StarNameSpaceIsValid == False :
+    _m_name = globaltbl.get('__name__')
+    if _m_name == None :
+      pass
+    elif _m_name == '__main__' :
+      pass
     else :
-      if Service.StarObjectSpace._IsInst(StarNameSpace) == True : 
-        pass
+      _m_name = _m_name.replace('.','_')
+      StarNameSpace = Service._GetObject(_m_name)
+      if StarNameSpace == None :
+        StarNameSpace = Service.StarObjectSpace._New(_m_name)
       else :
-        raise Exception('Register '+tpname+' failed, there has cle object which is not instance of StarNameSpace named '+_m_name)  
+        if Service.StarObjectSpace._IsInst(StarNameSpace) == True :
+          pass
+        else :
+          raise Exception('Register '+tpname+' failed, there has cle object which is not instance of StarNameSpace named '+_m_name)
+  else :
+    StarNameSpace = InputStarNameSpace
   
   data_class_rawtext = '''
 from pchain import pydata
@@ -683,6 +762,11 @@ class {0}(PCPySimpleDataClass) :
           self.val = val
         else :     
           raise Exception('create data instance failed, input ',val,'is not instance of ',self.rawtype)    
+          
+      self.GetTag = self._GetTag
+      self.GetTagLabel = self._GetTagLabel 
+      self.IsType = self._IsType    
+      self.Wrap = self._Wrap        
           
     @staticmethod
     def Load(MetaData) :
@@ -702,55 +786,60 @@ class {0}(PCPySimpleDataClass) :
                       
 pydata._Register(datatype,{0},StarNameSpace)
 globaltbl['{0}'] = {0}
+localtbl['{0}'] = {0}
 '''  
   
   local_env = {}
   local_env['StarNameSpace'] = StarNameSpace
   local_env['pyrawtype'] = pyrawtype
   local_env['globaltbl'] = globaltbl
+  local_env['localtbl'] = localtbl
   local_env['datatype'] = datatype
   exec(str.format(data_class_rawtext,tpname),local_env)
-  return globaltbl[tpname]
+
+  newtype = globaltbl[tpname]
+  newtype.cached_globaltbl = globaltbl
+  newtype.cached_localtbl = localtbl
+  return newtype
   
 class PCPySimpleDataClass(PCPyDataClass) :  
   pass
      
 def DefineType(tpname,rawtype=None) :  
-  import sys
-  f = list(sys._current_frames().values())[0] 
-  return _DefineType(f.f_back.f_globals,None,tpname,rawtype)  
-  
-def DefineTypeEx(datatype,tpname,rawtype=None) :  
-  import sys
-  f = list(sys._current_frames().values())[0] 
-  return _DefineType(f.f_back.f_globals,datatype,tpname,rawtype)   
+  import inspect
+  f = inspect.stack()[1][0]
+  return _DefineType(f.f_globals,f.f_locals,None,tpname,rawtype,False,None)
   
 #--subtype
-def _DefineSubType(globaltbl,parenttype,tpname,pyrawtype) :
+def _DefineSubType(globaltbl,localtbl,parenttype,tpname,pyrawtype,StarNameSpaceIsValid,InputStarNameSpace) :
   import libstarpy
   SrvGroup = libstarpy._GetSrvGroup(0)
   Service = SrvGroup._GetService("","")  
 
   global PCDataBaseClass
   if PCDataBaseClass == None :  
-    PCDataBaseClass = Service.PCDataBase  
-    
+    PCDataBaseClass = Service.PCDataBase
+
   StarNameSpace = None
-  _m_name = globaltbl.get('__name__')
-  if _m_name == None :
-    pass
-  elif _m_name == '__main__' :
-    pass
-  else :
-    StarNameSpace = Service._GetObject(_m_name)
-    if StarNameSpace == None :
-      StarNameSpace = Service.StarObjectSpace._New(_m_name)
+  if StarNameSpaceIsValid == False :
+    _m_name = globaltbl.get('__name__')
+    if _m_name == None :
+      pass
+    elif _m_name == '__main__' :
+      pass
     else :
-      if Service.StarObjectSpace._IsInst(StarNameSpace) == True : 
-        pass
+      _m_name = _m_name.replace('.','_')
+      StarNameSpace = Service._GetObject(_m_name)
+      if StarNameSpace == None :
+        StarNameSpace = Service.StarObjectSpace._New(_m_name)
       else :
-        raise Exception('Register '+tpname+' failed, there has cle object which is not instance of StarNameSpace named '+_m_name)
-  
+        if Service.StarObjectSpace._IsInst(StarNameSpace) == True :
+          pass
+        else :
+          raise Exception('Register '+tpname+' failed, there has cle object which is not instance of StarNameSpace named '+_m_name)
+  else :
+    StarNameSpace = InputStarNameSpace
+
   if pyrawtype == None : 
     pass
   else :
@@ -774,18 +863,48 @@ class {0}(parenttype) :
           
 pydata._Register(None,{0},StarNameSpace)  
 globaltbl['{0}'] = {0}
+localtbl['{0}'] = {0}
 '''  
   
   local_env = {}
   local_env['StarNameSpace'] = StarNameSpace
   local_env['pyrawtype'] = pyrawtype
   local_env['globaltbl'] = globaltbl
+  local_env['localtbl'] = localtbl
   local_env['parenttype'] = parenttype
   exec(str.format(data_class_rawtext,tpname),local_env)
 
-  return globaltbl[tpname]
+  newtype = globaltbl[tpname]
+  newtype.cached_globaltbl = globaltbl
+  newtype.cached_localtbl = localtbl
+
+  return newtype
     
-def DefineSubType(parenttype,tpname,rawtype = None) :  
-  import sys
-  f = list(sys._current_frames().values())[0] 
-  return _DefineSubType(f.f_back.f_globals,parenttype,tpname,rawtype)    
+def DefineSubType(parenttype,tpname,rawtype = None) :
+  import inspect
+  f = inspect.stack()[1][0]  
+  return _DefineSubType(f.f_globals,f.f_locals,parenttype,tpname,rawtype,False,None)
+
+#this function is for __init__.py
+def DefineSubType_WithSpace(parenttype,tpname,StarNameSpace,rawtype = None) :
+  #import inspect
+  #f = inspect.stack()[1][0]
+  return _DefineSubType(parenttype.cached_globaltbl,parenttype.cached_localtbl,parenttype,tpname,rawtype,True,StarNameSpace)
+
+#define default type
+def pydata_Init() :
+  import inspect
+  f = inspect.stack()[0][0]
+  import libstarpy
+  SrvGroup = libstarpy._GetSrvGroup(0)
+  Service = SrvGroup._GetService("", "")
+  StarNameSpace = Service.StarObjectSpace._New('pydata')
+  _DefineType(f.f_globals,f.f_locals,None,'pint',int,True,StarNameSpace)
+  _DefineType(f.f_globals,f.f_locals,None,'pbool',bool,True,StarNameSpace)
+  _DefineType(f.f_globals,f.f_locals,None,'pfloat',float,True,StarNameSpace)
+  _DefineType(f.f_globals,f.f_locals,None,'pcomplex',complex,True,StarNameSpace)
+  _DefineType(f.f_globals,f.f_locals,None,'pstr',str,True,StarNameSpace)
+  _DefineType(f.f_globals,f.f_locals,None,'plist',list,True,StarNameSpace)
+  _DefineType(f.f_globals,f.f_locals,None,'pset',set,True,StarNameSpace)
+  _DefineType(f.f_globals,f.f_locals,None,'pdict',dict,True,StarNameSpace)
+  _DefineType(f.f_globals,f.f_locals,None,'ptuple',tuple,True,StarNameSpace)

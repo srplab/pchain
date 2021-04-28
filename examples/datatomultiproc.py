@@ -34,7 +34,7 @@ def Execute(self,instr) :
 
 @realm._RegScriptProc_P('OnBeforeExecute')
 def realm_OnBeforeExecute(CleObj):
-  envdata = CleObj.GetEnvDataQueue()
+  envdata = CleObj.GetEnvData()
   if envdata._Number == 0 :
     return
   cell = Service.PCCellBase._New()
@@ -48,7 +48,7 @@ def realm_OnBeforeExecute(CleObj):
   CleObj.AddCell(cell)
   
   CleObj.RemoveEnvData(envdata)
-  print(CleObj.GetEnvDataQueue()._Number)
+  print(CleObj.GetEnvData()._Number)
 
 realm.AddEnvData(StringClass('abcde'))
 result = realm.ExecuteForResult()

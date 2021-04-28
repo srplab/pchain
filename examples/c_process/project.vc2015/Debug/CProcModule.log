@@ -1,7 +1,3 @@
-﻿  srplib_main.cpp
-  CProcModule_main.cpp
-  Generating Code...
-C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(1189,5): warning MSB8012: TargetPath(E:\work\StarObjectChain\pchain.native\vs2015.project\Debug\CProcModule.dll) does not match the Linker's OutputFile property value (E:\work\StarObjectChain\examples\c_process\CProcModule.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
-  LINK : ..\CProcModule.dll not found or not built by the last incremental link; performing full link
-     Creating library E:\work\StarObjectChain\pchain.native\vs2015.project\Debug\CProcModule.lib and object E:\work\StarObjectChain\pchain.native\vs2015.project\Debug\CProcModule.exp
-  CProcModule.vcxproj -> E:\work\StarObjectChain\pchain.native\vs2015.project\Debug\CProcModule.dll
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(1189,5): warning MSB8012: TargetPath(P:\work\StarObjectChain\StarObjectChain\examples\c_process\project.vc2015\Debug\CProcModule.dll) does not match the Linker's OutputFile property value (P:\work\StarObjectChain\StarObjectChain\examples\c_process\CProcModule.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+  CProcModule.vcxproj -> P:\work\StarObjectChain\StarObjectChain\examples\c_process\project.vc2015\Debug\CProcModule.dll
+  CProcModule.vcxproj -> P:\work\StarObjectChain\StarObjectChain\examples\c_process\project.vc2015\Debug\CProcModule.pdb (Full PDB)

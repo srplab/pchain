@@ -103,11 +103,10 @@ print(a.GetTag())
 print(b.GetTag())
 ```
 
-**3. define data class using DefineType/DefineTypeEx/DefineSubType**
+**3. define data class using DefineType/DefineSubType**
 
 > * DefineType : DefineType(tpname,rawtype=None), rawtype is a python type or class
 > * DefineSubType : DefineSubType(parenttype,tpname,rawtype = None), rawtype is a python type or class
-> * DefineTypeEx : DefineType(datatype,tpname,rawtype=None), rawtype is a python type or class. datatype is the data base type which has properties 
 
 *[Using value() function to get the wrapped python object](#)*
 
@@ -124,15 +123,6 @@ pydata.DefineType('RawMyClass',myclass)
 pydata.DefineSubType(RawMyClass,'RawMySubClass',mysubclass)
 
 inst = RawMySubClass(mysubclass())
-```
-
-```python
-newtype = Service.PCDataBase.CreateType('DataHasProperty')
-newtype.CreateProperty('Attr1',libstarpy.TYPE_CHARPTR,'')
-pydata.DefineTypeEx(newtype,'NumberClass')
-
-re = NumberClass(val)
-re.Wrap().Attr1 = 'From input'
 ```
 
 The data management type defined by this method, using the following template
@@ -238,6 +228,40 @@ If the data type is a class inherited from PCPyDataClass, the function wraps the
 
 `void *Create(...)`
 
+*[CreateType](#)*
+
+This function does not do much, except create a cle object as sub data type.  If you need to create a subtype, you need to call DefineSubType or pydata.DefineSubType
+
+`void *CreateType(VS_CHAR *TypeName)`
+
+*[DefineSubType](#)*
+
+Create sub data type of this type. the callback function `void *OnDefineSubType(VS_CHAR *SubTypeName)` is responsible for generating subtypes.
+
+`void *DefineSubType(VS_CHAR *SubTypeName)`
+
+for example,
+
+```
+pydata.DefineType('PersonClass',Person)
+PersonClass.DefineSubType('ddddd')
+```
+
+*[CastFrom](#)*
+
+Convert the data object of the parent tye to the data object of this type 
+
+`void *CastFrom(struct StructOfPCDataBase *ParentDataType_Data)`
+
+for example,
+
+```
+pydata.DefineType('PersonClass',str)
+a = PersonClass('12334')
+PersonClass.DefineSubType('ddddd')
+b = ddddd.CastFrom(a)
+```
+
 *[GetDataBuf](#)*
 
 For data types defined by python, data instances generated directly from the PCPyDataClass are usually directly accessible without calling the function.
@@ -245,6 +269,16 @@ For data types defined by python, data instances generated directly from the PCP
 For the data instance generated from the class inherited from PCPyDataClass, the function calls the ToParaPkg function of PCPyDataClass to store the data in ParaPkg.
 
 `VS_PARAPKGPTR GetDataBuf()`
+
+*[IsType](#)*
+
+`VS_BOOL IsType()`
+
+*[IsRootType](#)*
+
+The object is PCDataBase, PCDataSetBase, PCObjectDataBase, PCBufDataBase, or PCRealmFrameData
+
+`VS_BOOL IsRootType()`
 
 *[GetType](#)*
 
@@ -334,7 +368,7 @@ There is an object with the same type exists in the source object sequence, and 
 
 **[The same function is also defined in Python's PCPyDataClass and can be called directly.](#)**
 
-*[GetSourceData](#)*
+*[GetSource](#)*
 
 `VS_PARAPKGPTR GetSource()`
 
@@ -346,23 +380,21 @@ Data Objects in SourceData are arranged in order
 
 *[Equals](#)*
 
-two data are equal or not
+two data are equal or not. **[If two objects are equal, they are not necessarily the same](#)**
 
 `VS_BOOL Equals(struct StructOfPCDataBase *PCData)`
 
 *[IsSame](#)*
 
-Whether the two data objects are the same, the same is not necessarily equal, especially in the time variation sequence. 
-
-Two objects of the same type are set with tags and the tags are the same, or none of the tags are set and the values are equal.
+Whether the two data objects are the same, **[the same is not necessarily equal, especially in the time variation sequence](#)**. 
 
 `VS_BOOL IsSame(struct StructOfPCDataBase *PCData)`
 
-*[IsDataSet/IsObjectData/IsBufData/IsRealmFrameData](#)*
+*[IsDataSet/IsObjectData/IsBufData](#)*
 
 the data object is instance of PCDataSetBase/PCObjectDataBase/PCBufDataBase/PCRealmFrameData
 
-`VS_BOOL IsDataSet/IsObjectData/IsBufData/IsRealmFrameData()`
+`VS_BOOL IsDataSet/IsObjectData/IsBufData()`
 
 *[IsInstance](#)*
 
@@ -440,15 +472,10 @@ Get the PCBufDataBase.
 
 *[Wrap](#)*
 
-This function returns itself, for compatibility with the pydata calling method.
+This function returns the corresponding cle object, for compatibility with the pydata method.
 
 `void *Wrap()`
 
-*[SetReadOnly](#)*
-
-After this function, the data value can not changed. it can not be changed again
-
-`void SetReadOnly()`
 
 #### b. Cache of associated data objects
 
@@ -483,48 +510,6 @@ This data is used as input to execute the process string. If there are multiple 
 This data is used as input to execute the process. If there are multiple output results, only the first one is returned. For more complicated, please use RunProc of Realm.
 
 `void *RunProc(void *ProcOrProcChain)`
-
-#### d. attach rule management
-
-*[SetRuleAttach](#)*
-
-Set the rules that generate the data object
-
-`VS_BOOL SetRuleAttach(struct StructOfPCRuleBase *PCRule)`
-
-
-*[GetRuleAttach](#)*
-
-Get the rules that generate the data object
-
-`VS_PARAPKGPTR GetRuleAttach()`
-
-
-*[HasRuleAttach](#)*
-
-Whether the data object is associated with a rule
-
-`VS_BOOL HasRuleAttach()`
-
-*[RemoveRuleAttach](#)*
-
-Remove all attached rules. The data object becomes a fact
-
-`void RemoveRuleAttach()`
-
-
-*[Approved](#)*
-
-The data object validation is valid, the function calls the callback function OnApproved for each rule associated with the data object.
-
-`void Approved()`
-
-*[Disapproved](#)*
-
-The data object validation is invalid, the function calls the callback function OnDisapproved for each rule associated with the data object.
-
-`void Disapproved()`
-
 
 #### e. Run management function
 
@@ -572,6 +557,20 @@ Clear scheduling information (including Accept and Reject records) so that the d
 
 `void ResetSchedule()`
 
+*[Notify](#)*
+
+Create OnNewData callback of realm stub object to notify outside. **If the type is defined not using DefineType/DefineSubType, this function should be called.**
+
+The new object may be new data or datatype, which can be judged by Realm's function IsData or IsDataType
+
+`VS_BOOL Notify()`
+
+*[IsFromEnv](#)*
+
+Data object is from environment. this function is valid in process's execute phase.
+
+`VS_BOOL IsFromEnv()`
+
 *[IsFromProc](#)*
 
 Data object is generated by the proc
@@ -580,23 +579,26 @@ Data object is generated by the proc
 
 #### f. Save and load function
 
-*[SaveTo](#)*
+*[SaveTo/SaveToString](#)*
 
 Store the object to ParaPkg, can be converted to json string by ParaPkg._ToJSon() function.
 
 `VS_BOOL SaveTo(VS_PARAPKGPTR ValueBuf)`
+
+`VS_CHAR *SaveToString()`
 
 Json contains two items:
 `{"PackageInfo":[],"Value":[{"Type":4,"Value":"234"},{"Type":2,"Value":5567.76}]}`
  PackageInfo : The package that the data object depends on
  Value : content
 
-
-*[LoadFrom](#)*
+*[LoadFrom/LoadFromString](#)*
 
 Load the data object, the JSON string can be converted to ParaPkg by the ParaPkg._FromJSon() function, and then pass to LoadFrom.
 
 `void* LoadFrom(VS_PARAPKGPTR ValueBuf)`
+
+`void* LoadFromString(VS_CHAR *SaveInfo)`
 
 This function does not process 'PackageInfo' and needs to be processed by an external procedure before loading. If the data class or procedure class is not found during the loading process, the load fails.
 
@@ -617,53 +619,6 @@ Load the package using the loaderpackage function of the loader
 
 The function needs to be called via the data type, and the function returns the result as a new instance of the data class. If it fails, it returns NULL.
 
-Functions for defining properties of pcdata
----
-
-The data type supports defining properties. Only possible if no instance of the data type has been created. If a data type has attributes defined, all instances of that data type and it's subtypes(including PCDataSetBase,PCObjectDataBase,PCBufDataBase) have these properties.
-
-Cannot add properties to PCDataSetBase, PCObjectDataBase, PCBufDataBase types, or their subtypes
-
-Each PCDataBase, if an attribute is defined, has three associated types: PCDataSetBase, PCObjectDataBase, PCBufDataBase. These three associated types can be obtained through the functions GetDataSetBase, GetObjectDataBase, GetBufDataBase
-
-Data types with attributes and their associated PCDataSetBase, PCObjectDataBase, PCBufDataBase form a data object space.
-
-**This feature requires CLE registered version**
-
-**The attribute of the data has nothing to do with the Tag, the GetTag function is not affected by the attribute**
-
-*[CreateProperty](#)*
-
-Adding attributes to data types.
-
-`VS_BOOL CreateProperty(VS_CHAR *PropertyName, VS_INT8 PropertyType, void *PropertyDefaultValue)`
-
-PropertyType:
-* libstarpy.TYPE_BOOL
-* libstarpy.TYPE_INT32
-* libstarpy.TYPE_INT64
-* libstarpy.TYPE_CHARPTR
-* libstarpy.TYPE_DOUBLE
-
-example,
-
-```python
-newdata = Service.PCDataBase._New('datatype1')
-newdata.CreateProperty("att1",libstarpy.TYPE_INT32,1)
-```
-
-*[IsProperty](#)*
-
-Is property or not
-
-`VS_BOOL IsProperty(VS_CHAR *PropertyName)`
-
-*[HasProperty](#)*
-
-Whether the data type or instance has attributes defined
-
-`VS_BOOL HasProperty()`
-
 Functions supported for python instances corresponding to cle objects 
 ---
 
@@ -679,11 +634,14 @@ a.Wrap().AddSource(xxx)
 
 ```
 
+* IsType
 * GetType
 * AddSource
 * IsChangedFrom
 * SaveTo
+* SaveToString
 * LoadFrom, which is a class function
+* LoadFromString, which is a class function
 * GetSource, return list
 * GetOwnerProc
 * IsSource
@@ -691,9 +649,6 @@ a.Wrap().AddSource(xxx)
 * IsInstance
 * IsBefore
 * IsAfter
-* SetRuleAttach
-* GetRuleAttach, return list
-* HasRuleAttach
 * Approved
 * Disapproved
 * IsReject
@@ -717,13 +672,26 @@ a.Wrap().AddSource(xxx)
 * ClearCache
 * RunString
 * RunProc
-* IsProperty
-* HasProperty
 * GetDataSetBase
 * GetObjectDataBase
 * GetBufDataBase
+* DefineSubType
+* CastFrom
+* RegCallBack
+* UnRegCallBack
 
 
+Property supported for python instances corresponding to cle objects 
+---
 
+* Tag
+* TagLabel
+* _ID
 
+For example,
 
+```python
+pydata.DefineType('DiskPathClass')
+a = DiskPathClass(xxx)
+print(a.Tag)
+```

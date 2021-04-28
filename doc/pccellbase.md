@@ -38,7 +38,7 @@ Cell can handle the scheduling process by defining the Execute function. For exa
 mycell = Service.PCCellBase.Create(None,"mycell",None,NumberClass)
 @mycell._RegScriptProc_P("Execute")
 def Execute(cleobj,realm,cell,runner) :
-  inputdata = cleobj.GetEnvDataQueue()
+  inputdata = cleobj.GetEnvData()
   ...
   cleobj.ClearEnvData()
   cleobj.AddOutputData(result)
@@ -126,45 +126,11 @@ Add process or process chain to Cell, for process, pchain will automatically gen
 
 `VS_BOOL AddProc(void *PCProcOrProcChain,...)`
 
-*[AddProcEx](#)*
-
-Add process to Cell, you can indicate the rule object which generated the process.
-
-`VS_BOOL AddProcEx(struct StructOfPCRuleBase *PCRule, void *PCProcOrProcChain, ...)`
-
-each rule, may associate with a rule object which is an instance of PCRuleBase, for example,
-
-```python
-rule = Service.PCRuleBase._New()
-@rule._RegScriptProc_P('OnApproved')
-def OnApproved(cleobj,dataorproc):
-  print('OnApproved -------',dataorproc)
-  print('source data    :   ',dataorproc.GetSource())
-  print('owner proc     :   ',dataorproc.GetOwnerProc())
-
-@rule._RegScriptProc_P('OnDisapproved')
-def OnDisapproved(cleobj,dataorproc):
-  print('OnDisapproved -------',dataorproc)    
-    
-cell = Service.PCCellBase._New()
-cell.AddProcEx(rule,InputProc,OutputProc)
-
-realm.AddCell(cell)
-result = realm.ExecuteForResult()
-result[0].Approved()
-```
-
 *[ConnectProc](#)*
 
 Connect multiple processes or process chains in order to form a new process chain and add it to the Cell.
 
 `VS_BOOL ConnectProc(void *PCProcOrProcChain, ...)`
-
-*[ConnectProcEx](#)*
-
-You can indicate the rule object that generated the process.
-
-`VS_BOOL ConnectProcEx(struct StructOfPCRuleBase *PCRule, void *PCProcOrProcChain, ...)`
 
 *[FindProc](#)*
 
@@ -196,12 +162,17 @@ Whether the data object is output of the cell.
 
 `VS_BOOL DataCanBeAsOutput(struct StructOfPCDataBase *PCData)`
 
-*[GetEnvDataQueue](#)*
+*[GetEnvData](#)*
 
 Obtain the environment data queue of the PCDataBase instance. If PCDataBase is NULL, all the environment data is returned.
 
-`VS_PARAPKGPTR GetEnvDataQueue(void *PCDataBase)`
+`VS_PARAPKGPTR GetEnvData(void *PCDataBase)`
 
+*[GetNewEnvData](#)*
+
+Obtain the environment data queue of the PCDataBase instance created when executing. If PCDataBase is NULL, all the environment data is returned.
+
+`VS_PARAPKGPTR GetNewEnvData(void *PCDataBase)`
 
 *[GetEnvDataUnHandled](#)*
 

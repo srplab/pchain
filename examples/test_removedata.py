@@ -20,18 +20,18 @@ realm = Service.PCRealmBase._New()
 pydata.DefineType('NumberClass',float)
 
 realm.AddEnvData(NumberClass(1.2),NumberClass(3.4),NumberClass(4.5))
-datas = realm.GetEnvDataQueue()
+datas = realm.GetEnvData()
 print(datas)
 
 realm.RemoveEnvData(datas)
-newdatas = realm.GetEnvDataQueue()
+newdatas = realm.GetEnvData()
 print(newdatas._Number)
 
 realm.AddEnvData(datas)
-datas = realm.GetEnvDataQueue()
+datas = realm.GetEnvData()
 
 realm.RemoveEnvData(datas[0])
-print(realm.GetEnvDataQueue())
+print(realm.GetEnvData())
   
 # enter loop
 # pchain.cleloop()

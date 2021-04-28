@@ -102,6 +102,8 @@ def Execute(self,msg1) :
   else :
     pass
   msgcontext = msg1.GetSource()[0]
+  print(msgcontext.value())
+  print(msg1.value())
   return (0,1,InnerMsg2(RawInnerMsg2(msgcontext.value().MsgId,msg1.value().MsgInfo + '  ' + msgcontext.value().MsgInfo)))  
   
 ################################################################ Define procedure type Msg2Process

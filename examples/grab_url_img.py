@@ -51,6 +51,7 @@ parapkg = Service._ServiceGroup._NewParaPkg()
 realm.SaveObject(parapkg,procs[1])
 
 proc_str = parapkg._ToJSon()
+print(proc_str)
 
 result = realm.RunString(UrlClass('http://www.srplab.com/en/index.html'),None,proc_str)
 print(result)

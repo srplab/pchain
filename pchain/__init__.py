@@ -100,9 +100,9 @@ def cleinstall() :
   if pchain.platform == 'windows' :
     clefile = ''
     if pchain.is64Bit == True :
-      clefile = 'starcore_x64.3.7.2.exe'
+      clefile = 'starcore_x64.3.7.6.exe'
     else :
-      clefile = 'starcore_win32.3.7.2.exe'
+      clefile = 'starcore_win32.3.7.6.exe'
     print('download '+clefile+' from https://github.com/srplab/starcore_for_windows')
     import tempfile
     f, output_filename = tempfile.mkstemp(suffix='.exe')
@@ -131,9 +131,9 @@ def cleinstall() :
     clefile = ''
     if pchain.is64Bit == True :
       if isUbuntuOs == True :
-        clefile = 'starcore-ubuntu_3.7.2-2_amd64.deb'
+        clefile = 'starcore-ubuntu_3.7.6-2_amd64.deb'
       else :
-        clefile = 'starcore-3.7.2-1.x86_64.rpm'
+        clefile = 'starcore-3.7.6-1.x86_64.rpm'
     else :
       print('please install 32bit version manually')
       return False
@@ -167,7 +167,7 @@ def cleinstall() :
   if pchain.platform == 'darwin' :
     clefile = ''
     if pchain.is64Bit == True :
-      clefile = 'starcore_macos-3.7.2.x86_64.tar.gz'
+      clefile = 'starcore_macos-3.7.6.x86_64.tar.gz'
     else :
       print('32bit version is not supported')
       return False
@@ -242,6 +242,12 @@ def cleinit() :
     elif version[0] == '3' and version[1] == '7' :
       import libstar_python37
       modulename = 'python37'
+    elif version[0] == '3' and version[1] == '8' :
+      import libstar_python38
+      modulename = 'python37'
+    elif version[0] == '3' and version[1] == '9' :
+      import libstar_python39
+      modulename = 'python37'            
     else :
       print('python ' + version + ' not supported')
       os.chdir(savedcwd)
@@ -272,8 +278,8 @@ def cleinit() :
     Service=libstarpy._InitSimple("test","123",0,0);
     SrvGroup = Service._ServiceGroup;
     CleVer = libstarpy._Version()
-    if CleVer[0] < 3 or ( CleVer[0] == 3 and CleVer[1] < 114 ) :
-      print('pchain initialize failed, starcore version must be equal or higher than 3.7.2')
+    if CleVer[0] < 3 or ( CleVer[0] == 3 and CleVer[1] < 118 ) :
+      print('pchain initialize failed, starcore version must be equal or higher than 3.7.6')
       SrvGroup._ClearService()
       libstarpy._ModuleExit()      
       return None  
@@ -286,8 +292,8 @@ def cleinit() :
     IsInitPChain = True
   else :
     CleVer = libstarpy._Version()
-    if CleVer[0] < 3 or ( CleVer[0] == 3 and CleVer[1] < 114 ) :
-      print('pchain initialize failed, starcore version must be equal or higher than 3.7.2')
+    if CleVer[0] < 3 or ( CleVer[0] == 3 and CleVer[1] < 118 ) :
+      print('pchain initialize failed, starcore version must be equal or higher than 3.7.6')
       return None  
     Service = SrvGroup._GetService("","")
     Result = Service._DoFile("",nativepath+"/"+nativename,"");
@@ -295,7 +301,52 @@ def cleinit() :
       print(Result[1])
       return None  
     IsInitPChain = True
-      
+
+  @Service.PCDataBase._RegScriptProc_P('OnDefineSubType')
+  def PCDataBase_OnDefineSubType(CleObj,SubTypeName):
+    from pchain import pydata
+    import libstarpy
+    SrvGroup = libstarpy._GetSrvGroup(0)
+    Service = SrvGroup._GetService("","")
+    rawclass = pydata.UnWrap(CleObj)
+    #using name space of parent class
+    StarNameSpace = Service.StarObjectSpace.FindSpace(CleObj)
+    if rawclass == None :
+      subclass_cle = CleObj.CreateType(SubTypeName)
+      if StarNameSpace == None :
+        pass
+      else :
+        StarNameSpace.SetObject(subclass_cle)
+      return subclass_cle
+    else :
+      if StarNameSpace == None:
+        pass
+      else:
+        subclass_cle = StarNameSpace.GetObject(SubTypeName)
+        if subclass_cle == None :
+          pass
+        else :
+          return subclass_cle
+      subclass = pydata.DefineSubType_WithSpace(rawclass,SubTypeName,StarNameSpace)
+      subclass_cle = subclass.Wrap()
+      return subclass_cle
+
+  @Service.PCDataBase._RegScriptProc_P('OnCastFrom')
+  def PCDataBase_OnCastFrom(CleObj,SourceData):
+    from pchain import pydata
+    rawdata = pydata.UnWrap(SourceData)
+    rawclass = pydata.UnWrap(CleObj)
+    if rawdata == None or rawclass == None :  #not python data or not python class
+      databuf = SourceData.GetDataBuf()
+      newdata = CleObj._New()
+      newdata.SetDataBuf(databuf)
+      return newdata
+    else :
+      #create new class instance with old class's value
+      newrawdata = rawclass(rawdata.value())
+      newdata = newrawdata.Wrap()
+      return newdata
+
   @Service.PCProcBase._RegScriptProc_P('Create')
   def PCProcBase_Create(CleObj,StarSpaceObject,ProcName,InputQueue,OutputQueue):
     import libstarpy
@@ -359,7 +410,11 @@ def cleinit() :
         if loader.loadurl(url) == False :
           LoadResult = False
     return LoadResult
-          
+
+  #init pydata
+  from pchain import pydata
+  pydata.pydata_Init()
+
   return Service
   
 def cleloop() : 

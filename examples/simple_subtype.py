@@ -38,8 +38,13 @@ pydata.Register(NumberClass)
 pydata.DefineSubType(NumberClass,'IntegerClass')
 pydata.DefineSubType(IntegerClass,'SubIntegerClass')
 
+sss = NumberClass.DefineSubType('NumberClass111')
+b = NumberClass(23.4)
+c = NumberClass111.CastFrom(b)
+isin = NumberClass.Wrap()._IsInst(c.Wrap())
+
 # Define procedure types
-@pyproc.DefineProc('InputProc',None,NumberClass)
+@pyproc.DefineProc('InputProc',None,(NumberClass,SubIntegerClass))
 def Execute(self) :  
   Context = self.Context  #  first must save Context in local variable
   if Context['SelfObj'].Status < 0 :
@@ -58,7 +63,7 @@ def Execute(self) :
 
 # Define procedure types
 @pyproc.DefineProc('OutputProc',(NumberClass,IntegerClass),None)
-def Execute(self,num1,num2) :  
+def Execute(self,num1,num2) :
   Context = self.Context  #  first must save Context in local variable
   if num1 == None or num2 == None :
     return (2,0,None)

@@ -44,7 +44,7 @@ realm = Service.PCRealmBase._New()
 #define callback of realm
 @realm._RegScriptProc_P('OnBeforeExecute')
 def realm_OnBeforeExecute(CleObj):
-  NewEnvData = CleObj.GetEnvDataQueue()
+  NewEnvData = CleObj.GetEnvData()
   for data in NewEnvData :
     if StringClass.GetType()._IsInst(data) == True :
       newcell = Service.PCCellBase._New()

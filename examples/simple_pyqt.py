@@ -41,7 +41,7 @@ def Execute(self,event) :
  
 @realm._RegScriptProc_P('OnBeforeExecute')
 def realm_OnBeforeExecute(CleObj):
-  NewEnvData = CleObj.GetEnvDataQueue()
+  NewEnvData = CleObj.GetEnvData()
   if NewEnvData._Number == 0 :
     return
   CleObj.EnvDataToProc(NewEnvData[0],ButtonClickHandlerProc)

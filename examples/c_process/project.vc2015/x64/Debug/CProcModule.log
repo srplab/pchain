@@ -1,17 +1,3 @@
-﻿  srplib_main.cpp
-  md5proc.cpp
-  CProcModule_main.cpp
-  Generating Code...
-  vs_shell.c
-c:\srplab\files\lib.source\vs_shell.c(2091): warning C4311: 'type cast': pointer truncation from 'void *' to 'VS_ULONG'
-c:\srplab\files\lib.source\vs_shell.c(2710): warning C4312: 'type cast': conversion from 'VS_LONG' to 'void *' of greater size
-c:\srplab\files\lib.source\vs_shell.c(2710): warning C4047: 'function': 'LONG' differs in levels of indirection from 'void *'
-c:\srplab\files\lib.source\vs_shell.c(2710): warning C4024: '_InterlockedCompareExchange': different types for formal and actual parameter 2
-c:\srplab\files\lib.source\vs_shell.c(2710): warning C4024: '_InterlockedCompareExchange': different types for formal and actual parameter 3
-c:\srplab\files\lib.source\vs_shell.c(2885): warning C4996: 'kbhit': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _kbhit. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\conio.h(458): note: see declaration of 'kbhit'
-c:\srplab\files\lib.source\vs_shell.c(2886): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _getch. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\conio.h(452): note: see declaration of 'getch'
-C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(1189,5): warning MSB8012: TargetPath(E:\work\StarObjectChain\pchain.native\vs2015.project\x64\Debug\CProcModule.dll) does not match the Linker's OutputFile property value (E:\work\StarObjectChain\examples\c_process\CProcModule.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
-     Creating library E:\work\StarObjectChain\pchain.native\vs2015.project\x64\Debug\CProcModule.lib and object E:\work\StarObjectChain\pchain.native\vs2015.project\x64\Debug\CProcModule.exp
-  CProcModule.vcxproj -> E:\work\StarObjectChain\pchain.native\vs2015.project\x64\Debug\CProcModule.dll
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(1189,5): warning MSB8012: TargetPath(P:\work\StarObjectChain\StarObjectChain\examples\c_process\project.vc2015\x64\Debug\CProcModule.dll) does not match the Linker's OutputFile property value (P:\work\StarObjectChain\StarObjectChain\examples\c_process\CProcModule.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+  CProcModule.vcxproj -> P:\work\StarObjectChain\StarObjectChain\examples\c_process\project.vc2015\x64\Debug\CProcModule.dll
+  CProcModule.vcxproj -> P:\work\StarObjectChain\StarObjectChain\examples\c_process\project.vc2015\x64\Debug\CProcModule.pdb (Full PDB)

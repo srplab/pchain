@@ -81,10 +81,10 @@ def OnCellToBeFinish(Realm,cell):
   print('ImageOpenProc  is executed?  ',cell.IsProcExecuted(ImageOpenProc))
   output = cell.GetCellMissingOutput()
   if output._Number == 0 :
-    return False    
+    return False
   for item in output :
     if cell.IsCellOutputMustExist(item) == True :
-      input = cell.GetEnvDataQueue() 
+      input = cell.GetEnvData()
       chain = Realm.BuildProcChain(output,input)
       if chain[0] == False :
         return False  # failed
@@ -97,7 +97,8 @@ def OnCellToBeFinish(Realm,cell):
 @realm._RegScriptProc_P('OnOutputDataToEnv')
 def OnOutputDataToEnv(Realm,cell,proc,datalist):  
   print('output data  ',str(datalist))
-    
+
+print('+++++++++++++++++++++++++')
 result = realm.RunProc(img,('m',ImageHistogramClass,'m',SizeClass),ImageFormatProc,ImageSizeProc)
 print(result)
 

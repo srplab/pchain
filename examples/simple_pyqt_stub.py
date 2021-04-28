@@ -42,7 +42,7 @@ def Execute(self,event) :
 #define stub function to handle all ream's callback
 @realm_stub._RegScriptProc_P('OnBeforeExecute')
 def realm_stub_OnBeforeExecute(stub,CleObj):
-  NewEnvData = CleObj.GetEnvDataQueue()
+  NewEnvData = CleObj.GetEnvData()
   if NewEnvData._Number == 0 :
     return
   CleObj.EnvDataToProc(NewEnvData[0],ButtonClickHandlerProc)

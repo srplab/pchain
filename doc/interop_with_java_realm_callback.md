@@ -61,7 +61,7 @@ JavaRealmClass_Obj._RegScriptProc_P("OnBeforeExecute", new StarObjectScriptProcI
     {
     	  StarObjectClass PCRealm = (StarObjectClass)CleObject;
           StarObjectClass PCRealm = (StarObjectClass)CleObject;
-          StarParaPkgClass EnvData = (StarParaPkgClass)PCRealm._Call("GetEnvDataQueue");
+          StarParaPkgClass EnvData = (StarParaPkgClass)PCRealm._Call("GetEnvData");
             	  
     	  StarObjectClass StringClass = (StarObjectClass)Service._GetObject("StringClass");
     	  StarObjectClass PCCellBase = (StarObjectClass)Service._GetObject("PCCellBase");

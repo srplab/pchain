@@ -30,8 +30,6 @@ def Execute(self) :
 
 #-----------------------------------------------------------------
 import uuid
-print('create rule object : ',str(Service.PCRuleBase()))
-print('create rule object with id : ',Service.PCRuleBase(uuid.uuid1()))
 
 print('create data object : ',str(NumberClass(123)))
 

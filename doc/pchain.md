@@ -20,7 +20,7 @@ Call back the function "OnBeforeExecute" before entering other phases
 
 Schedule Cell Execution. When all the cells cannot continue to execute, enter the IDLEPREPARE phase. 
 
-Call back to function "OnAfterExecute" before entering IDLEPREPARE. If OnAfterExecute returns true, the scheduling execution continues. Otherwise call the function OnFrameData, enter the IDLEPREPARE stage
+Call back to function "OnAfterExecute" before entering IDLEPREPARE. If OnAfterExecute returns true, the scheduling execution continues. Otherwise enter the IDLEPREPARE stage
 
 * IDLEPREPARE
 
@@ -195,7 +195,7 @@ floattype = floatclass.GetType()
 
 * method 2
 
-Using DefineType/DefineSubType
+Using DefineType/DefineChildType
 
 > * DefineType : DefineType(tpname,rawtype=None), rawtype is a python type or class
 > * DefineSubType : DefineSubType(parenttype,tpname,rawtype = None), rawtype is a python type or class
@@ -330,7 +330,7 @@ ProcChain.AddChildProcChain(p2,NumberStepProc,p1)
 
 Add the process to the cell in order. When adding, pchain will automatically create a process chain
 
-Call the function AddProc/AddProcEx/ConnectProc/ConnectProcEx of the cell. This method cannot create a child process chain
+Call the function AddProc/ConnectProc of the cell. This method cannot create a child process chain
 
 
 #### f. Define the callback function of realm, execute realm
@@ -347,7 +347,7 @@ For a detailed explanation of the callback function, refer to [pcrealm](./pcream
 ```python
 @realm._RegScriptProc_P('OnBeforeExecute')
 def realm_OnBeforeExecute(CleObj):
-  envdata = CleObj.GetEnvDataQueue()
+  envdata = CleObj.GetEnvData()
   if envdata._Number == 0 :
     return
   ...
@@ -825,54 +825,7 @@ A is the source object of B, B is the source object of C, and A is the source ob
 
 Pchain automatically tracks and records the relationship between data objects.
 
-#### q. Processing PCRealmFrameData data
 
-PCRealmFrameData is the data type defined by pchain, and its parent class is PCDataSetBase. Used to record a set of data objects.
-
-Set CreateFrameData to true(default). In the procedure of processing the data object by realm, the initial environment data, or the environment data generated during the processing, will be collected in PCRealmFrameData.
-
-The process for PCRealmFrameData can be defined, and rules are generated according to the relationship between the data objects, the frequency of occurrence of the data objects, or the process by which the data objects are generated.
-
-In order to process PCRealmFrameData, you need to define Realm's callback function "OnFrameData". For example,
-
-```python
-@realm._RegScriptProc_P('OnFrameData')
-def realm_OnFrameData(CleObj,FrameData):
-  LocalBuf = CleObj.GetLocalBuf()
-  RuleRealm = LocalBuf['RuleRealm']
-  if RuleRealm == None :
-    RuleRealm = Service.PCRealmBase._New()
-    LocalBuf['RuleRealm'] = RuleRealm
-  RuleRealm.SyncFrom(CleObj,False)
-  Cells = RuleRealm.GetCellForInput(FrameData)
-  if Cells._Number == 0 :  # no process before
-    newcell = Service.PCCellBase._New()
-    newcell.AddProc(Service.EqualRuleProc)  
-    RuleRealm.AddCell(newcell)
-    Cells = RuleRealm.GetCellForInput(FrameData)
-  Cells[0].AddEnvData(RuleRealm,FrameData)
-  RuleRealm.Execute()  
-```
-
-#### r. Processing PCRealmJudgementData data
-
-refer to pcrealm
-
-#### s. [About rule management](../examples/simple_rule.py)
-
-Pchain defines the base class of the rule, which is a buffer that can store various data. Integers, Boolean types, floating point numbers, string types, and data objects, process objects can be added to the buffer. You can store the memory in the buffer as a json string or from a json string.
-
-The definition of specific rules is done by the application.
-
-Realm currently only provides queues for rule storage.
-
-When a process or process chain is generated according to a rule, when it is added to the Cell, the associated rule can be set. If the process produces a data object, the rule is also associated with the data object.
-
-When the data object is wrong, you can call the Disapproved method, which will call back the rule's OnDisapproved method, how to handle it, depending on the specific rules.
-
-or,
-
-When the data object is correct, you can call the Approved method, which will call back the rule's OnApproved method, how to handle it, depending on the specific rules.
 
 
 

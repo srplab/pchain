@@ -42,14 +42,6 @@ cell.AddProc(InputProc,OutputProc)
 realm.AddCell(cell)
 realm.Execute()
 
-activeset = realm.GetActiveObject(None,1.0,0)
-print(activeset)
-activesetTag = realm.GetTagEx(activeset)
-print(activesetTag)
-
-for t in activeset :
-  print( t.GetTagLabel())
-  
 print(realm.GetPerformanceData())
   
 # enter loop

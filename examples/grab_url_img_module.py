@@ -27,9 +27,14 @@ def Execute(self,url) :
   
   try:    
     libstarpy._SRPUnLock()  # release cle lock, before enter wait
-    import urllib2
-    req = urllib2.Request(url.value())    
-    fd = urllib2.urlopen(req)
+    result = None
+    if pchain.ispython2 == True :
+      import urllib2
+      req = urllib2.Request(url.value())
+      fd = urllib2.urlopen(req)
+    else :
+      import urllib.request
+      fd = urllib.request.urlopen(url.value())
     if fd.info()['Content-Type'] == 'text/html' :
       result = fd.read()
       fd.close()
@@ -49,10 +54,16 @@ def Execute(self,url) :
 def Execute(self,page) :  
   Context = self.Context  #  first must save Context in local variable
   import re
-  from urlparse import urljoin
-  reg = r'src="(.+?\.png)"'
-  reg_img = re.compile(reg)
-  imglist = reg_img.findall(page.value())
+  if pchain.ispython2 == True:
+    from urlparse import urljoin
+    reg = r'src="(.+?\.png)"'
+    reg_img = re.compile(reg)
+    imglist = reg_img.findall(page.value())
+  else :
+    from urllib.parse import urljoin
+    reg = r'src="(.+?\.png)"'
+    reg_img = re.compile(reg)
+    imglist = reg_img.findall(page.value().decode('utf-8'))
   result = []
   url = page.GetSource()[0]
   for img in imglist:
@@ -69,9 +80,14 @@ def Execute(self,url) :
   
   try:    
     libstarpy._SRPUnLock()  # release cle lock, before enter wait
-    import urllib2
-    req = urllib2.Request(url.value())    
-    fd = urllib2.urlopen(req)
+    result = None
+    if pchain.ispython2 == True :
+      import urllib2
+      req = urllib2.Request(url.value())
+      fd = urllib2.urlopen(req)
+    else :
+      import urllib.request
+      fd = urllib.request.urlopen(url.value())
     if fd.info()['Content-Type'] == 'image/png' or fd.info()['Content-Type'] == 'image/jpeg' :
       result = fd.read()
       fd.close()

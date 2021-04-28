@@ -39,7 +39,7 @@ def Execute(self,num1,num2) :
 mycell = Service.PCCellBase.Create(None,"mycell",None,NumberClass)
 @mycell._RegScriptProc_P("Execute")
 def Execute(cleobj,realm,cell,runner) :
-  inputdata = cleobj.GetEnvDataQueue()
+  inputdata = cleobj.GetEnvData()
   newin = InputProc.call()
   result = OutputProc.call(inputdata[0],newin)
   cleobj.ClearEnvData()

@@ -29,10 +29,16 @@ def Execute(self,url) :
 
   try:    
     libstarpy._SRPUnLock()  # release cle lock, before enter wait
-    import urllib2
-    req = urllib2.Request(url.value())
-    fd = urllib2.urlopen(req)
-    result = fd.read()
+    result = None
+    if pchain.ispython2 == True :
+      import urllib2
+      req = urllib2.Request(url.value())
+      fd = urllib2.urlopen(req)
+      result = fd.read()
+    else :
+      import urllib.request
+      fd = urllib.request.urlopen(url.value())
+      result = fd.read()
     libstarpy._SRPLock()    # capture cle lock,
     return (0,1,WebPageClass(result))         
   except Exception as exc:
